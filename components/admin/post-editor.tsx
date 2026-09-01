@@ -51,7 +51,7 @@ export function PostEditor({ post }: { post?: Post }) {
   const [content, setContent] = useState(post?.content ?? STARTER);
   const [coverVariant, setCoverVariant] = useState<CoverVariant>(post?.cover_variant ?? "indigo");
   const [tags, setTags] = useState(post?.tags ?? "");
-  const [author, setAuthor] = useState(post?.author ?? "LoanCalc Pro");
+  const [author, setAuthor] = useState(post?.author ?? "Loan Calculator Pro");
   const [status, setStatus] = useState<"draft" | "published">(post?.status ?? "draft");
   const [seoTitle, setSeoTitle] = useState(post?.seo_title ?? "");
   const [seoDescription, setSeoDescription] = useState(post?.seo_description ?? "");

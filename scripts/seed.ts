@@ -249,7 +249,7 @@ async function main() {
       `INSERT INTO posts
          (slug, title, excerpt, content, cover_variant, tags, author, status,
           seo_description, keywords, published_at)
-       VALUES (?, ?, ?, ?, ?, ?, 'LoanCalc Pro', 'published', ?, ?, datetime('now'))`,
+       VALUES (?, ?, ?, ?, ?, ?, 'Loan Calculator Pro', 'published', ?, ?, datetime('now'))`,
       [
         post.slug,
         post.title,

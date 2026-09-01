@@ -4,14 +4,15 @@ import { SITE } from "@/lib/site";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "LoanCalc Pro — EMI & Loan Comparison Calculator",
-    short_name: "LoanCalc Pro",
+    name: "Loan Calculator Pro — EMI & Loan Comparison Calculator",
+    short_name: "Loan Calculator Pro",
     description: SITE.description,
     start_url: "/",
     scope: "/",
     display: "standalone",
     orientation: "portrait-primary",
-    background_color: "#f6f7fb",
+    // Matches the dark default so the PWA splash screen does not flash white.
+    background_color: "#070a16",
     theme_color: SITE.themeColor,
     lang: "en-IN",
     dir: "ltr",

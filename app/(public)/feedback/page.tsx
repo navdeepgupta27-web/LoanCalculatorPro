@@ -12,7 +12,7 @@ export const metadata = pageMetadata({
   description:
     "Found a bug, spotted a figure that looks wrong, or want a feature added to the EMI calculator? Tell us — every message is read.",
   path: "/feedback",
-  keywords: ["loan calculator feedback", "report a bug", "suggest a feature", "contact LoanCalc Pro"],
+  keywords: ["loan calculator feedback", "report a bug", "suggest a feature", "contact Loan Calculator Pro"],
 });
 
 const REASONS = [

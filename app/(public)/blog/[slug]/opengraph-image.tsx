@@ -3,7 +3,7 @@ import { ImageResponse } from "next/og";
 import { getPostBySlug } from "@/lib/queries";
 import { SITE } from "@/lib/site";
 
-export const alt = "LoanCalc Pro guide";
+export const alt = "Loan Calculator Pro guide";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -80,7 +80,7 @@ export default async function BlogOgImage({ params }: { params: Promise<{ slug: 
           >
             ₹
           </div>
-          <div style={{ fontSize: 26, fontWeight: 700 }}>LoanCalc Pro</div>
+          <div style={{ fontSize: 26, fontWeight: 700 }}>Loan Calculator Pro</div>
           <div style={{ fontSize: 20, color: "#8b93a9" }}>· Guides</div>
         </div>
 

@@ -8,9 +8,9 @@ import { SITE, SITE_URL } from "@/lib/site";
 export const metadata = pageMetadata({
   title: "Contact",
   description:
-    "How to reach LoanCalc Pro — bug reports, rate corrections, feature requests, press and partnership enquiries.",
+    "How to reach Loan Calculator Pro — bug reports, rate corrections, feature requests, press and partnership enquiries.",
   path: "/contact",
-  keywords: ["contact LoanCalc Pro", "loan calculator support", "report an error"],
+  keywords: ["contact Loan Calculator Pro", "loan calculator support", "report an error"],
 });
 
 const ROUTES = [

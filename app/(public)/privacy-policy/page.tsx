@@ -6,7 +6,7 @@ import { SITE } from "@/lib/site";
 export const metadata = pageMetadata({
   title: "Privacy Policy",
   description:
-    "What LoanCalc Pro collects, what it deliberately does not collect, how Google AdSense fits in, and your rights under India's DPDP Act and the GDPR.",
+    "What Loan Calculator Pro collects, what it deliberately does not collect, how Google AdSense fits in, and your rights under India's DPDP Act and the GDPR.",
   path: "/privacy-policy",
   keywords: ["privacy policy", "data protection", "DPDP Act", "cookie policy"],
 });

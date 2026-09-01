@@ -30,7 +30,7 @@ const sora = Sora({
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: "Loan EMI Calculator with Part-Payment & Bank Comparison | LoanCalc Pro",
+    default: "Loan EMI Calculator with Part-Payment & Bank Comparison | Loan Calculator Pro",
     template: `%s | ${SITE.name}`,
   },
   description: SITE.description,
@@ -87,16 +87,23 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   maximumScale: 5,
-  themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#f6f7fb" },
-    { media: "(prefers-color-scheme: dark)", color: "#070a16" },
-  ],
-  colorScheme: "light dark",
+  // The site renders dark by default whatever the OS is set to, so the browser
+  // chrome should match rather than follow prefers-color-scheme.
+  themeColor: "#070a16",
+  colorScheme: "dark light",
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en-IN" className={`${inter.variable} ${sora.variable}`} suppressHydrationWarning>
+    // data-theme is set here too so the server-rendered HTML already carries the
+    // dark default; the inline script below only has to override it for someone
+    // who has explicitly chosen light.
+    <html
+      lang="en-IN"
+      data-theme="dark"
+      className={`${inter.variable} ${sora.variable}`}
+      suppressHydrationWarning
+    >
       <head>
         {/* Sets data-theme before first paint so dark mode never flashes white. */}
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />

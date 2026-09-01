@@ -37,6 +37,10 @@
   --color-accent-700: #047857;
   --color-accent-800: #065f46;
   --color-accent-900: #064e3b;
+  /* Required: every `dark:bg-accent-950` in the app silently generated no CSS
+     while this step was missing, leaving those panels on their light
+     background in dark mode. */
+  --color-accent-950: #022c22;
 
   /* Interest is always warm, principal always brand — consistent everywhere. */
   --color-interest: #f97316;

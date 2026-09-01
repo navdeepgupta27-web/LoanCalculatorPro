@@ -7,11 +7,11 @@ import { breadcrumbSchema, pageMetadata } from "@/lib/seo";
 import { SITE } from "@/lib/site";
 
 export const metadata = pageMetadata({
-  title: "About LoanCalc Pro",
+  title: "About Loan Calculator Pro",
   description:
-    "Who builds LoanCalc Pro, how the calculations work, where the interest rate data comes from, and how the site is funded.",
+    "Who builds Loan Calculator Pro, how the calculations work, where the interest rate data comes from, and how the site is funded.",
   path: "/about",
-  keywords: ["about LoanCalc Pro", "loan calculator India about", "how EMI calculator works"],
+  keywords: ["about Loan Calculator Pro", "loan calculator India about", "how EMI calculator works"],
 });
 
 export default function AboutPage() {
@@ -28,7 +28,7 @@ export default function AboutPage() {
         breadcrumb="About"
         title={
           <>
-            About <span className="gradient-text">LoanCalc Pro</span>
+            About <span className="gradient-text">Loan Calculator Pro</span>
           </>
         }
         lede="A loan calculator built to answer the questions that actually change what you pay — not just the monthly instalment."
@@ -44,7 +44,7 @@ export default function AboutPage() {
           </p>
           <p>
             Those questions decide how much a loan costs over twenty years, and they are exactly the
-            ones most tools cannot answer. LoanCalc Pro was built to answer them.
+            ones most tools cannot answer. Loan Calculator Pro was built to answer them.
           </p>
 
           <h2>How the calculations work</h2>

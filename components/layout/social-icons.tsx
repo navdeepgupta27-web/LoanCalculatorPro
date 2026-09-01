@@ -47,7 +47,7 @@ export function SocialLinks({
             href={link.href}
             target="_blank"
             rel="noopener noreferrer me"
-            aria-label={`LoanCalc Pro on ${link.name}`}
+            aria-label={`Loan Calculator Pro on ${link.name}`}
             title={link.name}
             className={cn(
               "group grid place-items-center rounded-lg border border-[var(--border)] bg-[var(--surface)]",

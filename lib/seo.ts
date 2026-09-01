@@ -134,7 +134,7 @@ export function softwareApplicationSchema() {
     "@context": "https://schema.org",
     "@type": "WebApplication",
     "@id": `${SITE_URL}/#webapp`,
-    name: "LoanCalc Pro EMI & Loan Comparison Calculator",
+    name: "Loan Calculator Pro EMI & Loan Comparison Calculator",
     url: SITE_URL,
     applicationCategory: "FinanceApplication",
     applicationSubCategory: "Loan Calculator",
