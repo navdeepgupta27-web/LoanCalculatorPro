@@ -1,4 +1,4 @@
-# LoanCalc Pro — loancalculatorpro.in
+# Loan Calculator Pro — loancalculatorpro.in
 
 EMI, part-payment and bank-comparison calculator for Indian loans. Next.js 16
 (App Router) + React 19 + Tailwind 4, with a SQLite-compatible database, a

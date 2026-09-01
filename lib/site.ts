@@ -9,8 +9,8 @@ export const SITE_URL =
   "https://loancalculatorpro.in";
 
 export const SITE = {
-  name: "LoanCalc Pro",
-  legalName: "LoanCalc Pro",
+  name: "Loan Calculator Pro",
+  legalName: "Loan Calculator Pro",
   domain: "loancalculatorpro.in",
   url: SITE_URL,
   tagline: "India's most detailed EMI & loan comparison calculator",

@@ -155,7 +155,7 @@ export function FeedbackList({ items }: { items: Feedback[] }) {
                       <dd>
                         <a
                           href={`mailto:${f.email}?subject=${encodeURIComponent(
-                            `Re: ${f.subject || "your feedback on LoanCalc Pro"}`,
+                            `Re: ${f.subject || "your feedback on Loan Calculator Pro"}`,
                           )}`}
                           className="font-medium text-brand-600 hover:underline dark:text-brand-300"
                         >

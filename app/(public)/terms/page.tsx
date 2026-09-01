@@ -6,7 +6,7 @@ import { SITE } from "@/lib/site";
 export const metadata = pageMetadata({
   title: "Terms of Service",
   description:
-    "The terms governing your use of the LoanCalc Pro EMI calculator, comparison tools and interest rate tables.",
+    "The terms governing your use of the Loan Calculator Pro EMI calculator, comparison tools and interest rate tables.",
   path: "/terms",
   keywords: ["terms of service", "terms and conditions", "website terms"],
 });
@@ -37,7 +37,7 @@ export default function TermsPage() {
 
           <h2>2. What this site is</h2>
           <p>
-            LoanCalc Pro is a free calculation and information tool. It computes loan repayment
+            Loan Calculator Pro is a free calculation and information tool. It computes loan repayment
             figures from numbers you supply and publishes interest rate information transcribed from
             lenders&rsquo; own websites.
           </p>

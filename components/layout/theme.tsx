@@ -7,18 +7,21 @@ export const THEME_STORAGE_KEY = "lcp-theme";
 /**
  * Applies the stored theme before first paint.
  *
- * This runs as a blocking inline script in <head>: if the class were applied
- * from a useEffect instead, a dark-mode visitor would see a white flash on
- * every navigation.
+ * This runs as a blocking inline script in <head>: if the theme were applied
+ * from a useEffect instead, every visitor would see a flash of the wrong
+ * background on each navigation.
+ *
+ * Dark is the site default, so a first-time visitor gets dark regardless of
+ * their OS setting. Only an explicit choice — stored from the toggle — moves
+ * them to light, and that choice always wins afterwards.
  */
 export const themeInitScript = `
 (function(){
   try {
     var stored = localStorage.getItem('${THEME_STORAGE_KEY}');
-    var theme = stored || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-    document.documentElement.setAttribute('data-theme', theme);
+    document.documentElement.setAttribute('data-theme', stored === 'light' ? 'light' : 'dark');
   } catch (e) {
-    document.documentElement.setAttribute('data-theme', 'light');
+    document.documentElement.setAttribute('data-theme', 'dark');
   }
 })();
 `.trim();

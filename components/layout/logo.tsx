@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
  */
 export function LogoMark({ className }: { className?: string }) {
   return (
-    <svg viewBox="0 0 48 48" className={className} role="img" aria-label="LoanCalc Pro">
+    <svg viewBox="0 0 48 48" className={className} role="img" aria-label="Loan Calculator Pro">
       <defs>
         <linearGradient id="lcp-mark" x1="0" y1="0" x2="1" y2="1">
           <stop offset="0%" stopColor="#6366f1" />
@@ -47,13 +47,15 @@ export function Logo({
     <Link
       href={href}
       className={cn("group flex items-center gap-2.5 transition-opacity hover:opacity-90", className)}
-      aria-label="LoanCalc Pro — home"
+      aria-label="Loan Calculator Pro — home"
     >
       <LogoMark className="h-9 w-9 shrink-0 transition-transform duration-300 group-hover:scale-105 group-hover:rotate-3" />
       {showText && (
         <span className="flex flex-col leading-none">
-          <span className="font-display text-[1.0625rem] font-extrabold tracking-tight text-[var(--text)]">
-            LoanCalc <span className="gradient-text">Pro</span>
+          {/* The full name is long, so it steps down a size on narrow screens
+              and never wraps away from the mark. */}
+          <span className="whitespace-nowrap font-display text-[0.9375rem] font-extrabold tracking-tight text-[var(--text)] sm:text-[1.0625rem]">
+            Loan Calculator <span className="gradient-text">Pro</span>
           </span>
           <span className="mt-0.5 text-[0.6rem] font-semibold uppercase tracking-[0.14em] text-[var(--text-muted)]">
             EMI &amp; Savings

@@ -7,7 +7,7 @@ import { SITE } from "@/lib/site";
  * that does not define its own, so links always unfurl with real branding
  * instead of a blank rectangle.
  */
-export const alt = "LoanCalc Pro — EMI calculator with part-payment savings and bank comparison";
+export const alt = "Loan Calculator Pro — EMI calculator with part-payment savings and bank comparison";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -71,7 +71,7 @@ export default function OpengraphImage() {
             ₹
           </div>
           <div style={{ display: "flex", flexDirection: "column" }}>
-            <div style={{ fontSize: 30, fontWeight: 800, letterSpacing: -0.5 }}>LoanCalc Pro</div>
+            <div style={{ fontSize: 30, fontWeight: 800, letterSpacing: -0.5 }}>Loan Calculator Pro</div>
             <div style={{ fontSize: 17, color: "#8b93a9", letterSpacing: 2 }}>
               {SITE.domain.toUpperCase()}
             </div>

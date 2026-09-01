@@ -107,7 +107,7 @@ export function Footer() {
 
         <div className="mt-10 rounded-xl border border-[var(--border)] bg-[var(--bg-subtle)] p-4">
           <p className="text-xs leading-relaxed text-[var(--text-muted)]">
-            <strong className="text-[var(--text-secondary)]">Disclaimer:</strong> LoanCalc Pro is a
+            <strong className="text-[var(--text-secondary)]">Disclaimer:</strong> Loan Calculator Pro is a
             calculation tool, not a lender, broker or financial adviser, and nothing here is
             investment or borrowing advice. Figures are estimates based on the values you enter and
             the standard reducing-balance method; your lender&rsquo;s sanction letter is the only

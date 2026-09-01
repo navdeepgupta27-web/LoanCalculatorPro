@@ -67,22 +67,12 @@ export default async function HomePage() {
         <div className="relative mx-auto max-w-7xl px-4 pb-8 pt-14 sm:px-6 sm:pt-20 lg:px-8">
           <div className="mx-auto max-w-3xl text-center">
             <Reveal>
-              <span className="inline-flex items-center gap-2 rounded-full border border-brand-200 bg-white/70 px-3.5 py-1.5 text-xs font-bold text-brand-700 shadow-sm backdrop-blur dark:border-brand-800 dark:bg-brand-950/50 dark:text-brand-300">
-                <span className="relative flex h-2 w-2">
-                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-accent-400 opacity-75" />
-                  <span className="relative inline-flex h-2 w-2 rounded-full bg-accent-500" />
-                </span>
-                Free · No sign-up · Works offline once loaded
-              </span>
-            </Reveal>
-
-            <Reveal delay={80}>
-              <h1 className="mt-5 font-display text-4xl font-extrabold leading-[1.08] tracking-tight text-[var(--text)] sm:text-5xl lg:text-6xl">
+              <h1 className="font-display text-4xl font-extrabold leading-[1.08] tracking-tight text-[var(--text)] sm:text-5xl lg:text-6xl">
                 Know exactly what your <span className="gradient-text">loan really costs</span>
               </h1>
             </Reveal>
 
-            <Reveal delay={140}>
+            <Reveal delay={80}>
               <p className="mx-auto mt-5 max-w-2xl text-base leading-relaxed text-[var(--text-secondary)] sm:text-lg">
                 Calculate your EMI, then find out what a part-payment actually saves you — in
                 rupees and in years. Compare lenders on total cost rather than headline rate, and
@@ -90,7 +80,7 @@ export default async function HomePage() {
               </p>
             </Reveal>
 
-            <Reveal delay={200}>
+            <Reveal delay={140}>
               <div className="mt-7 flex flex-wrap items-center justify-center gap-3">
                 <ButtonLink href="#calculator" size="lg">
                   Start calculating
@@ -104,7 +94,7 @@ export default async function HomePage() {
               </div>
             </Reveal>
 
-            <Reveal delay={260}>
+            <Reveal delay={200}>
               <ul className="mx-auto mt-10 grid max-w-3xl grid-cols-2 gap-3 sm:grid-cols-4">
                 {TRUST_POINTS.map((t) => (
                   <li
@@ -134,7 +124,7 @@ export default async function HomePage() {
       {/* ---------------- Why this calculator ---------------- */}
       <section className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
         <SectionHeading
-          eyebrow="Why LoanCalc Pro"
+          eyebrow="Why Loan Calculator Pro"
           title="Built for the questions other calculators ignore"
           description="Most EMI tools stop at the monthly instalment. The decisions that actually save money — when to prepay, what the bank should do with it, and which lender is genuinely cheaper — need more than that."
         />

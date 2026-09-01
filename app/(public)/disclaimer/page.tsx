@@ -9,7 +9,7 @@ import { SITE } from "@/lib/site";
 export const metadata = pageMetadata({
   title: "Disclaimer",
   description:
-    "LoanCalc Pro provides estimates, not financial advice. What our calculations include, what they leave out, and why you must verify with your lender.",
+    "Loan Calculator Pro provides estimates, not financial advice. What our calculations include, what they leave out, and why you must verify with your lender.",
   path: "/disclaimer",
   keywords: ["disclaimer", "not financial advice", "loan calculator accuracy"],
 });
@@ -32,7 +32,7 @@ export default function DisclaimerPage() {
       >
         <div className="rounded-xl border-l-4 border-amber-500 bg-amber-50 p-5 dark:bg-amber-950/40">
           <p className="text-[0.9375rem] font-semibold leading-relaxed text-amber-900 dark:text-amber-200">
-            LoanCalc Pro is a calculation tool, not a financial adviser. Nothing on this site is
+            Loan Calculator Pro is a calculation tool, not a financial adviser. Nothing on this site is
             investment, tax, legal or borrowing advice, and nothing here is a recommendation to take
             any particular loan from any particular lender.
           </p>

@@ -49,7 +49,7 @@ export const GENERAL_FAQS: Faq[] = [
   {
     question: "Is this financial advice?",
     answer:
-      "No. LoanCalc Pro is a calculation tool, not a lender, broker or financial adviser. It shows you the arithmetic of a loan on the numbers you enter. Whether a particular loan suits your circumstances is a decision for you, and if the amount is significant it is worth discussing with a qualified adviser. Your lender's sanction letter is the only authoritative statement of your EMI, interest and charges.",
+      "No. Loan Calculator Pro is a calculation tool, not a lender, broker or financial adviser. It shows you the arithmetic of a loan on the numbers you enter. Whether a particular loan suits your circumstances is a decision for you, and if the amount is significant it is worth discussing with a qualified adviser. Your lender's sanction letter is the only authoritative statement of your EMI, interest and charges.",
   },
 ];
 
