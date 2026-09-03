@@ -1,3 +1,4 @@
+import { Analytics } from "@vercel/analytics/next";
 import type { Metadata, Viewport } from "next";
 import { Inter, Sora } from "next/font/google";
 import Script from "next/script";
@@ -114,6 +115,14 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <ToastProvider>{children}</ToastProvider>
 
         <ActivityTracker />
+
+        {/*
+          Vercel Analytics — audience and page-view data in the Vercel
+          dashboard. Cookie-less and carries no persistent identifier, but it is
+          a third-party collector, so it is disclosed in the privacy policy
+          alongside our own first-party tracking.
+        */}
+        <Analytics />
 
         <JsonLd data={[organizationSchema(), websiteSchema()]} />
 

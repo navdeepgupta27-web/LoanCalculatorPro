@@ -32,15 +32,16 @@ export default function PrivacyPolicyPage() {
         breadcrumb="Privacy Policy"
         title="Privacy Policy"
         lede="What we collect, what we deliberately do not, and what you can ask us to do about it."
-        updated="1 September 2026"
+        updated="4 September 2026"
       >
         <div className="prose-lcp">
           <h2>The short version</h2>
           <p>
             Your loan calculations never leave your browser. We do not ask you to create an account,
-            we do not require an email address to use any tool on this site, and we do not set a
-            tracking cookie. The only personal information we ever hold is what you voluntarily type
-            into the feedback form.
+            we do not require an email address to use any tool on this site, and nothing on this
+            site sets a tracking cookie. The only personal information we ever hold is what you
+            voluntarily type into the feedback form. Page views are counted — by us and by our
+            host, Vercel — without cookies and without any identifier that persists across sites.
           </p>
 
           <h2>What we do not collect</h2>
@@ -56,8 +57,9 @@ export default function PrivacyPolicyPage() {
               salted SHA-256 hash first. The hash cannot be reversed into an address.
             </li>
             <li>
-              <strong>Tracking cookies.</strong> We set no first-party cookie for analytics,
-              advertising or profiling.
+              <strong>Tracking cookies.</strong> Neither we nor our analytics provider sets a cookie
+              for analytics or profiling. Google AdSense is the one exception and is described
+              under Advertising below.
             </li>
           </ul>
 
@@ -81,7 +83,28 @@ export default function PrivacyPolicyPage() {
             all. Requests identified as search-engine crawlers are also excluded.
           </p>
 
-          <h3>2. Feedback you send us</h3>
+          <h3>2. Vercel Analytics</h3>
+          <p>
+            Our hosting provider, Vercel, runs its own privacy-focused analytics on this site. It
+            records page views along with the referring site, country, and broad device, browser and
+            operating-system categories. It sets <strong>no cookie</strong> and stores no persistent
+            identifier — repeat visits are estimated from a hash that is rotated daily and cannot be
+            used to follow you over time or across other websites.
+          </p>
+          <p>
+            Vercel processes this on our behalf as a data processor. Their handling is described in
+            the{" "}
+            <a
+              href="https://vercel.com/legal/privacy-policy"
+              target="_blank"
+              rel="noopener noreferrer nofollow"
+            >
+              Vercel Privacy Policy
+            </a>
+            .
+          </p>
+
+          <h3>3. Feedback you send us</h3>
           <p>
             If you use the feedback form we store the name and message you enter, an email address
             and subject if you choose to provide them, the star rating if you give one, the page you

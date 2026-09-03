@@ -38,7 +38,7 @@ export default async function AdminActivityPage({
     <>
       <PageHeading
         title="Activity"
-        description="First-party analytics from your own database — no third-party tracker, no cookie, and visitors sending Do Not Track are excluded."
+        description="First-party analytics from your own database — no cookie, and visitors sending Do Not Track are excluded. Vercel Analytics runs alongside this and is reported separately in the Vercel dashboard."
       />
 
       {stats && (

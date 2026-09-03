@@ -9,7 +9,12 @@ import { ButtonLink } from "@/components/ui/button";
 import { Reveal } from "@/components/ui/reveal";
 import { getRateCoverage, getRatesForLoanType, type RateCoverage } from "@/lib/queries";
 import { breadcrumbSchema, pageMetadata, rateTableSchema } from "@/lib/seo";
-import { LOAN_TYPES, loanTypeByRateSlug } from "@/lib/site";
+import {
+  bankRateKeywords,
+  LOAN_TYPES,
+  loanTypeByRateSlug,
+  RATE_KEYWORDS,
+} from "@/lib/site";
 import type { RateWithBank } from "@/lib/types";
 
 export const dynamicParams = false;
@@ -32,10 +37,15 @@ export async function generateMetadata({ params }: Props) {
     path: `/bank-interest-rates/${type.rateSlug}`,
     keywords: [
       `${type.label.toLowerCase()} interest rate`,
+      `${type.label.toLowerCase()} interest rate today`,
+      `current ${type.label.toLowerCase()} interest rate`,
       `${type.label.toLowerCase()} interest rates all banks`,
       `lowest ${type.label.toLowerCase()} interest rate India`,
       `${type.label.toLowerCase()} processing fee comparison`,
       `compare ${type.label.toLowerCase()} rates`,
+      // "SBI home loan interest rate", "current HDFC Bank home loan rate", …
+      ...bankRateKeywords(type.label),
+      ...RATE_KEYWORDS,
       ...type.keywords,
     ],
   });

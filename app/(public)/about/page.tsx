@@ -88,7 +88,8 @@ export default function AboutPage() {
           <p>
             We do count page views, using a random session identifier discarded when you close the
             tab and a one-way hash of your IP address that cannot be reversed. Visitors sending a Do
-            Not Track signal are excluded entirely. The full detail is in the{" "}
+            Not Track signal are excluded entirely. Our host, Vercel, also counts page views, again
+            without cookies. The full detail is in the{" "}
             <Link href="/privacy-policy">privacy policy</Link>.
           </p>
 
