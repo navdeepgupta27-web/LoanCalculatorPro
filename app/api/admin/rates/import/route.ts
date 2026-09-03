@@ -1,7 +1,9 @@
+import { revalidatePath } from "next/cache";
 import { NextResponse } from "next/server";
 
 import { isResponse, requireAdminApi } from "@/lib/auth";
 import { all, run } from "@/lib/db";
+import { LOAN_TYPE_MAP } from "@/lib/site";
 import { slugify } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
@@ -204,6 +206,17 @@ export async function POST(request: Request) {
       );
 
       imported++;
+    }
+
+    // An import can touch any loan type, so refresh every rate page. Without
+    // this the public tables keep serving their cached prerender for up to an
+    // hour and the import looks like it did nothing.
+    if (imported > 0) {
+      revalidatePath("/bank-interest-rates");
+      revalidatePath("/compare-loans");
+      for (const type of Object.values(LOAN_TYPE_MAP)) {
+        revalidatePath(`/bank-interest-rates/${type.rateSlug}`);
+      }
     }
 
     return NextResponse.json({
