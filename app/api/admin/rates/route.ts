@@ -1,10 +1,31 @@
+import { revalidatePath } from "next/cache";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { isResponse, requireAdminApi } from "@/lib/auth";
 import { run } from "@/lib/db";
+import { LOAN_TYPE_MAP, type LoanTypeId } from "@/lib/site";
 
 export const dynamic = "force-dynamic";
+
+/**
+ * The public rate pages are statically generated with a one-hour revalidate, so
+ * without this an edit sits invisible until the window expires. Called after
+ * every write so a rate you just published shows up immediately.
+ */
+function refreshRatePages(loanType?: LoanTypeId) {
+  revalidatePath("/bank-interest-rates");
+  // The comparison tool prefills from verified rates.
+  revalidatePath("/compare-loans");
+
+  if (loanType) {
+    revalidatePath(`/bank-interest-rates/${LOAN_TYPE_MAP[loanType].rateSlug}`);
+  } else {
+    for (const type of Object.values(LOAN_TYPE_MAP)) {
+      revalidatePath(`/bank-interest-rates/${type.rateSlug}`);
+    }
+  }
+}
 
 const nullableNumber = z.union([z.number(), z.null()]).optional();
 const nullableString = z.union([z.string().max(500), z.null()]).optional();
@@ -83,6 +104,7 @@ export async function PUT(request: Request) {
       ],
     );
 
+    refreshRatePages(d.loanType);
     return NextResponse.json({ ok: true });
   } catch (err) {
     console.error("[admin/rates] upsert failed:", err);
@@ -104,6 +126,7 @@ export async function DELETE(request: Request) {
 
   try {
     await run(`DELETE FROM rates WHERE id = ?`, [parsed.data.id]);
+    refreshRatePages();
     return NextResponse.json({ ok: true });
   } catch (err) {
     console.error("[admin/rates] delete failed:", err);
