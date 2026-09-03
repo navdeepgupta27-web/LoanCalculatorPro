@@ -81,6 +81,55 @@ export async function getRates(loanType?: LoanTypeId): Promise<RateWithBank[]> {
   return all<RateWithBank>(`${RATE_SELECT} ${order}`);
 }
 
+/**
+ * Every lender, whether or not it has a rate for this loan type.
+ *
+ * The public tables start from `banks` and LEFT JOIN the rate, so the page is a
+ * complete directory of the market from day one rather than an empty table
+ * until someone fills it in. Lenders without a published rate render as
+ * "Not published" and sort last.
+ */
+export async function getRatesForLoanType(loanType: LoanTypeId): Promise<RateWithBank[]> {
+  return all<RateWithBank>(
+    `SELECT r.id                     AS id,
+            b.id                     AS bank_id,
+            COALESCE(r.loan_type, ?) AS loan_type,
+            r.min_rate, r.max_rate, r.processing_fee, r.max_tenure_years,
+            r.max_amount, r.source_url, r.effective_date,
+            COALESCE(r.verified, 0)  AS verified,
+            r.notes, r.updated_at,
+            b.name       AS bank_name,
+            b.short_name AS bank_short_name,
+            b.slug       AS bank_slug,
+            b.category   AS bank_category,
+            b.accent     AS bank_accent,
+            b.website    AS bank_website
+       FROM banks b
+       LEFT JOIN rates r ON r.bank_id = b.id AND r.loan_type = ?
+      ORDER BY (COALESCE(r.verified, 0) = 0 OR r.min_rate IS NULL),
+               r.min_rate ASC, b.sort_order ASC, b.name ASC`,
+    [loanType, loanType],
+  );
+}
+
+/** A lender plus the loan types it has verified rates for. */
+export interface LenderDirectoryRow extends Bank {
+  /** Comma-separated loan_type values, or null when nothing is published. */
+  published_types: string | null;
+}
+
+export async function getLenderDirectory(): Promise<LenderDirectoryRow[]> {
+  return all<LenderDirectoryRow>(
+    `SELECT b.*,
+            (SELECT GROUP_CONCAT(r.loan_type)
+               FROM rates r
+              WHERE r.bank_id = b.id AND r.verified = 1 AND r.min_rate IS NOT NULL
+            ) AS published_types
+       FROM banks b
+      ORDER BY b.sort_order ASC, b.name ASC`,
+  );
+}
+
 /** Only rows with a rate you have marked verified — what comparisons may use. */
 export async function getVerifiedRates(loanType?: LoanTypeId): Promise<RateWithBank[]> {
   const where = `WHERE r.verified = 1 AND r.min_rate IS NOT NULL`;
@@ -96,25 +145,39 @@ export async function getBanks(): Promise<Bank[]> {
 }
 
 export interface RateCoverage {
+  /** Rate rows recorded (published or not). */
   total: number;
   verified: number;
   missing: number;
+  /** Lenders listed on the site — the denominator users actually see. */
+  lenders: number;
   lastUpdated: string | null;
 }
 
 export async function getRateCoverage(loanType?: LoanTypeId): Promise<RateCoverage> {
   const filter = loanType ? `WHERE loan_type = ?` : ``;
   const args = loanType ? [loanType] : [];
-  const row = await one<{ total: number; verified: number; last_updated: string | null }>(
-    `SELECT COUNT(*) AS total,
-            SUM(CASE WHEN verified = 1 AND min_rate IS NOT NULL THEN 1 ELSE 0 END) AS verified,
-            MAX(updated_at) AS last_updated
-       FROM rates ${filter}`,
-    args,
-  );
+
+  const [row, lenders] = await Promise.all([
+    one<{ total: number; verified: number; last_updated: string | null }>(
+      `SELECT COUNT(*) AS total,
+              SUM(CASE WHEN verified = 1 AND min_rate IS NOT NULL THEN 1 ELSE 0 END) AS verified,
+              MAX(updated_at) AS last_updated
+         FROM rates ${filter}`,
+      args,
+    ),
+    scalar<number>(`SELECT COUNT(*) FROM banks`, [], 0),
+  ]);
+
   const total = Number(row?.total ?? 0);
   const verified = Number(row?.verified ?? 0);
-  return { total, verified, missing: total - verified, lastUpdated: row?.last_updated ?? null };
+  return {
+    total,
+    verified,
+    missing: total - verified,
+    lenders: Number(lenders),
+    lastUpdated: row?.last_updated ?? null,
+  };
 }
 
 /* ------------------------------------------------------------------ */

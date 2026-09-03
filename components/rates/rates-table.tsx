@@ -144,7 +144,9 @@ export function RatesTable({
 
                 return (
                   <tr
-                    key={r.id}
+                    // A lender with no rate row for this type has a null id, so
+                    // the key comes from the pair that is always unique.
+                    key={`${r.bank_id}-${r.loan_type}`}
                     className={cn(
                       "border-t border-[var(--border)] transition-colors hover:bg-[var(--bg-subtle)]",
                       isLowest && "bg-accent-50/50 dark:bg-accent-950/20",
