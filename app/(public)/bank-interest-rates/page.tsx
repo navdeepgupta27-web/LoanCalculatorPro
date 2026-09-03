@@ -8,7 +8,7 @@ import { JsonLd } from "@/components/seo/json-ld";
 import { Reveal } from "@/components/ui/reveal";
 import { getLenderDirectory, getRateCoverage, type RateCoverage } from "@/lib/queries";
 import { breadcrumbSchema, pageMetadata, rateTableSchema } from "@/lib/seo";
-import { LOAN_TYPES, type LoanTypeId } from "@/lib/site";
+import { HEADLINE_LENDERS, LOAN_TYPES, RATE_KEYWORDS, type LoanTypeId } from "@/lib/site";
 
 export const metadata = pageMetadata({
   title: "Bank Interest Rates in India — All Loan Types Compared",
@@ -26,6 +26,12 @@ export const metadata = pageMetadata({
     "bank loan processing fees comparison",
     "NBFC interest rates India",
     "housing finance company rates",
+    // Bank-name intent: "SBI interest rate", "current HDFC Bank rate", …
+    ...HEADLINE_LENDERS.flatMap((b) => [
+      `${b} interest rate`,
+      `current ${b} interest rate`,
+    ]),
+    ...RATE_KEYWORDS,
   ],
 });
 

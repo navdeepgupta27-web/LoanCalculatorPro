@@ -55,7 +55,13 @@ export const SOCIAL_LINKS: SocialLink[] = [
 /* Keywords                                                            */
 /* ------------------------------------------------------------------ */
 
-/** Head terms that belong on nearly every page. */
+/**
+ * Head terms that belong on nearly every page.
+ *
+ * Note the deliberate duplication of "X calculator" and "X EMI calculator" —
+ * they are separate queries with separate volume, and people search the
+ * shorter form at least as often.
+ */
 export const CORE_KEYWORDS = [
   "loan calculator",
   "EMI calculator",
@@ -69,6 +75,28 @@ export const CORE_KEYWORDS = [
   "loan interest calculator",
   "free EMI calculator",
   "bank loan calculator India",
+  // Short forms — searched at least as often as the "EMI" variants.
+  "home loan calculator",
+  "personal loan calculator",
+  "car loan calculator",
+  "housing loan calculator",
+  "business loan calculator",
+  "education loan calculator",
+  "gold loan calculator",
+];
+
+/** Rate-lookup intent, which is a different job from calculating an EMI. */
+export const RATE_KEYWORDS = [
+  "interest rate on loan",
+  "loan interest rate",
+  "loan interest rate today",
+  "current loan interest rate",
+  "current interest rate India",
+  "bank interest rate today",
+  "latest bank interest rates",
+  "interest rate comparison India",
+  "which bank has lowest interest rate",
+  "cheapest loan interest rate India",
 ];
 
 /** Long-tail intent terms — the phrases that actually convert. */
@@ -89,7 +117,51 @@ export const INTENT_KEYWORDS = [
   "loan balance schedule month wise",
 ];
 
-export const ALL_KEYWORDS = [...CORE_KEYWORDS, ...INTENT_KEYWORDS];
+export const ALL_KEYWORDS = [...CORE_KEYWORDS, ...INTENT_KEYWORDS, ...RATE_KEYWORDS];
+
+/* ------------------------------------------------------------------ */
+/* Bank-name queries                                                   */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Lenders people search for by name. "SBI home loan interest rate" and
+ * "current HDFC interest rate" are high-volume queries that nothing on the
+ * site targeted until these were generated onto the rate pages.
+ *
+ * Names only — public facts about which institutions exist. No rate, fee or
+ * product claim is made here; those live in the database and only appear once
+ * verified against the lender's own page.
+ */
+export const HEADLINE_LENDERS = [
+  "SBI",
+  "State Bank of India",
+  "HDFC Bank",
+  "ICICI Bank",
+  "Axis Bank",
+  "Kotak Mahindra Bank",
+  "Bank of Baroda",
+  "Punjab National Bank",
+  "Canara Bank",
+  "Union Bank of India",
+  "LIC Housing Finance",
+  "Bajaj Housing Finance",
+  "IDFC FIRST Bank",
+  "IndusInd Bank",
+  "Federal Bank",
+  "Tata Capital",
+] as const;
+
+/**
+ * Builds "{bank} {loan type} interest rate" style keywords for a rate page,
+ * plus the "current {bank} interest rate" phrasing people actually type.
+ */
+export function bankRateKeywords(loanTypeLabel: string): string[] {
+  const product = loanTypeLabel.toLowerCase();
+  return HEADLINE_LENDERS.flatMap((bank) => [
+    `${bank} ${product} interest rate`,
+    `current ${bank} ${product} rate`,
+  ]);
+}
 
 /* ------------------------------------------------------------------ */
 /* Loan types                                                          */
@@ -139,6 +211,8 @@ export const LOAN_TYPES: LoanTypeConfig[] = [
     blurb:
       "Work out the EMI on a housing loan, see exactly how much of every instalment is interest, and find out what a single part-payment does to your 20-year tenure.",
     keywords: [
+      "home loan calculator",
+      "home loan interest rate",
       "home loan EMI calculator",
       "housing loan calculator",
       "home loan calculator India",
@@ -164,6 +238,8 @@ export const LOAN_TYPES: LoanTypeConfig[] = [
     blurb:
       "Price up a new or used car loan, including processing fee and GST, and see the true on-road cost of financing rather than just the sticker EMI.",
     keywords: [
+      "car loan calculator",
+      "car loan interest rate",
       "car loan EMI calculator",
       "auto loan calculator India",
       "used car loan EMI calculator",
@@ -185,6 +261,8 @@ export const LOAN_TYPES: LoanTypeConfig[] = [
     blurb:
       "Personal loans carry the widest rate spread of any product in India. Compare offers properly — including the processing fee — before you sign.",
     keywords: [
+      "personal loan calculator",
+      "personal loan interest rate",
       "personal loan EMI calculator",
       "personal loan interest calculator",
       "instant personal loan calculator",
@@ -205,6 +283,8 @@ export const LOAN_TYPES: LoanTypeConfig[] = [
     blurb:
       "Model working-capital and term-loan repayments, then check the cash-flow impact of clearing the balance early with a lump sum.",
     keywords: [
+      "business loan calculator",
+      "business loan interest rate",
       "business loan EMI calculator",
       "MSME loan calculator",
       "working capital loan calculator",
@@ -225,6 +305,8 @@ export const LOAN_TYPES: LoanTypeConfig[] = [
     blurb:
       "Plan study-loan repayments from the first salary onward and see how much a modest yearly prepayment shortens the term.",
     keywords: [
+      "education loan calculator",
+      "education loan interest rate",
       "education loan EMI calculator",
       "student loan calculator India",
       "abroad education loan calculator",
@@ -245,6 +327,7 @@ export const LOAN_TYPES: LoanTypeConfig[] = [
     blurb:
       "Short-tenure gold loans move fast. Check the instalment and the total interest before you pledge.",
     keywords: [
+      "gold loan calculator",
       "gold loan EMI calculator",
       "gold loan interest rate",
       "gold loan per gram calculator",
