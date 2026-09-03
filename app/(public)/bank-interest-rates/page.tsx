@@ -2,14 +2,13 @@ import Link from "next/link";
 
 import { AdLeaderboard } from "@/components/ads/ad-slot";
 import { CoverageNotice } from "@/components/rates/coverage-notice";
-import { RatesTable } from "@/components/rates/rates-table";
+import { LenderDirectory, type DirectoryRow } from "@/components/rates/lender-directory";
 import { SectionHeading } from "@/components/sections/section-heading";
 import { JsonLd } from "@/components/seo/json-ld";
 import { Reveal } from "@/components/ui/reveal";
-import { getRateCoverage, getRates } from "@/lib/queries";
+import { getLenderDirectory, getRateCoverage, type RateCoverage } from "@/lib/queries";
 import { breadcrumbSchema, pageMetadata, rateTableSchema } from "@/lib/seo";
-import { LOAN_TYPES } from "@/lib/site";
-import type { RateWithBank } from "@/lib/types";
+import { LOAN_TYPES, type LoanTypeId } from "@/lib/site";
 
 export const metadata = pageMetadata({
   title: "Bank Interest Rates in India — All Loan Types Compared",
@@ -34,11 +33,28 @@ export const metadata = pageMetadata({
 export const revalidate = 3600;
 
 export default async function BankRatesPage() {
-  let rates: RateWithBank[] = [];
-  let coverage = { total: 0, verified: 0, missing: 0, lastUpdated: null as string | null };
+  let lenders: DirectoryRow[] = [];
+  let coverage: RateCoverage = {
+    total: 0,
+    verified: 0,
+    missing: 0,
+    lenders: 0,
+    lastUpdated: null,
+  };
 
   try {
-    [rates, coverage] = await Promise.all([getRates(), getRateCoverage()]);
+    const [directory, cov] = await Promise.all([getLenderDirectory(), getRateCoverage()]);
+    coverage = cov;
+    lenders = directory.map((b) => ({
+      id: b.id,
+      name: b.name,
+      short_name: b.short_name,
+      category: b.category,
+      accent: b.accent,
+      publishedTypes: (b.published_types ?? "")
+        .split(",")
+        .filter(Boolean) as LoanTypeId[],
+    }));
   } catch {
     // Render the page shell even if the database is unreachable.
   }
@@ -47,7 +63,7 @@ export default async function BankRatesPage() {
     <>
       <JsonLd
         data={[
-          rateTableSchema("Loan", rates.length, "/bank-interest-rates"),
+          rateTableSchema("Loan", lenders.length, "/bank-interest-rates"),
           breadcrumbSchema([
             { name: "Home", path: "/" },
             { name: "Bank Interest Rates", path: "/bank-interest-rates" },
@@ -78,9 +94,10 @@ export default async function BankRatesPage() {
             </Reveal>
             <Reveal delay={90}>
               <p className="mt-4 text-base leading-relaxed text-[var(--text-secondary)] sm:text-lg">
-                Rate bands, processing fees and maximum tenures across public banks, private banks,
-                housing finance companies and NBFCs. Every row carries the date it was recorded and
-                a link to the lender&rsquo;s own page, so you can check it yourself before acting.
+                Every major Indian lender in one place — public banks, private banks, housing
+                finance companies, NBFCs and small finance banks. Pick a loan type below for the
+                full rate comparison, where each figure is dated and linked to the lender&rsquo;s own
+                published page so you can check it before acting.
               </p>
             </Reveal>
           </div>
@@ -106,7 +123,7 @@ export default async function BankRatesPage() {
         <div className="mb-5">
           <CoverageNotice coverage={coverage} />
         </div>
-        <RatesTable rates={rates} showLoanType />
+        <LenderDirectory rows={lenders} />
       </section>
 
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
