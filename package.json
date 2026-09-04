@@ -15,7 +15,8 @@
     "gen:hash": "node scripts/gen-hash.mjs",
     "db:guides": "node --conditions=react-server --env-file-if-exists=.env.local --import tsx scripts/add-guides.ts",
     "guide:figures": "node --import tsx scripts/guide-figures.ts",
-    "verify:investment": "node --import tsx scripts/verify-investment.ts"
+    "verify:investment": "node --import tsx scripts/verify-investment.ts",
+    "db:scheme-rates": "node --conditions=react-server --env-file-if-exists=.env.local --import tsx scripts/seed-scheme-rates.ts"
   },
   "dependencies": {
     "@libsql/client": "^0.17.4",
