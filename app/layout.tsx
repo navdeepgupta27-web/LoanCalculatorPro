@@ -97,20 +97,20 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   maximumScale: 5,
-  // The site renders dark by default whatever the OS is set to, so the browser
+  // The site renders light by default whatever the OS is set to, so the browser
   // chrome should match rather than follow prefers-color-scheme.
-  themeColor: "#070a16",
-  colorScheme: "dark light",
+  themeColor: "#f6f7fb",
+  colorScheme: "light dark",
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     // data-theme is set here too so the server-rendered HTML already carries the
-    // dark default; the inline script below only has to override it for someone
-    // who has explicitly chosen light.
+    // light default; the inline script below only has to override it for someone
+    // who has explicitly chosen dark.
     <html
       lang="en-IN"
-      data-theme="dark"
+      data-theme="light"
       className={`${inter.variable} ${sora.variable}`}
       suppressHydrationWarning
     >

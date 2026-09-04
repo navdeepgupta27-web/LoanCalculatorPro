@@ -11,17 +11,17 @@ export const THEME_STORAGE_KEY = "lcp-theme";
  * from a useEffect instead, every visitor would see a flash of the wrong
  * background on each navigation.
  *
- * Dark is the site default, so a first-time visitor gets dark regardless of
+ * Light is the site default, so a first-time visitor gets light regardless of
  * their OS setting. Only an explicit choice — stored from the toggle — moves
- * them to light, and that choice always wins afterwards.
+ * them to dark, and that choice always wins afterwards.
  */
 export const themeInitScript = `
 (function(){
   try {
     var stored = localStorage.getItem('${THEME_STORAGE_KEY}');
-    document.documentElement.setAttribute('data-theme', stored === 'light' ? 'light' : 'dark');
+    document.documentElement.setAttribute('data-theme', stored === 'dark' ? 'dark' : 'light');
   } catch (e) {
-    document.documentElement.setAttribute('data-theme', 'dark');
+    document.documentElement.setAttribute('data-theme', 'light');
   }
 })();
 `.trim();
