@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { NotAvailableHere } from "@/components/country/not-available";
+
 import { AdLeaderboard } from "@/components/ads/ad-slot";
 import { CoverageNotice } from "@/components/rates/coverage-notice";
 import { RatesTable } from "@/components/rates/rates-table";
@@ -10,7 +12,7 @@ import { Reveal } from "@/components/ui/reveal";
 import { getRateCoverage, getRatesForLoanType, type RateCoverage } from "@/lib/queries";
 import { countryHref, resolveCountry } from "@/lib/countries";
 import { breadcrumbSchema, pageMetadata, rateTableSchema } from "@/lib/seo";
-import { LOAN_TYPES, RATE_KEYWORDS, bankRateKeywords, loanTypeAvailable, loanTypeByRateSlug } from "@/lib/site";
+import { loanTypesFor, RATE_KEYWORDS, bankRateKeywords, loanTypeAvailable, loanTypeByRateSlug } from "@/lib/site";
 import type { RateWithBank } from "@/lib/types";
 
 /**
@@ -21,8 +23,17 @@ import type { RateWithBank } from "@/lib/types";
 export const dynamicParams = true;
 export const revalidate = 3600;
 
-export function generateStaticParams() {
-  return LOAN_TYPES.map((t) => ({ loanType: t.rateSlug }));
+/**
+ * Takes the country from the parent segment so combinations that do not exist
+ * are never built.
+ *
+ * Without this, /us/bank-interest-rates/gold-loan was prerendered, hit the
+ * notFound() below during the build, and was then served as the not-found body
+ * with a 200 status and a stale title — which is worse than either a real page
+ * or a real 404, because a crawler treats it as a valid page.
+ */
+export function generateStaticParams({ params }: { params: { country: string } }) {
+  return loanTypesFor(params.country).map((t) => ({ loanType: t.rateSlug }));
 }
 
 type Props = { params: Promise<{ country: string; loanType: string }> };
@@ -33,9 +44,18 @@ export async function generateMetadata({ params }: Props) {
   const type = loanTypeByRateSlug(loanType);
   if (!type) return {};
 
+  if (!loanTypeAvailable(country.code, type)) {
+    return pageMetadata({
+      title: `${type.label}s are not offered in ${country.name}`,
+      description: `${type.label}s are not a retail product in ${country.name}. See the loan types available there instead.`,
+      path: countryHref(country, `/bank-interest-rates/${type.rateSlug}`),
+      noIndex: true,
+    });
+  }
+
   return pageMetadata({
     title: `${type.label} Interest Rates — All Banks Compared`,
-    description: `Compare ${type.label.toLowerCase()} interest rates, processing fees and maximum tenures across Indian banks, housing finance companies and NBFCs. Each rate is dated and linked to the lender's own published page.`,
+    description: `Compare ${type.label.toLowerCase()} interest rates, processing fees and maximum tenures across lenders in ${country.name}. Each rate is dated and linked to the lender's own published page.`,
     path: countryHref(country, `/bank-interest-rates/${type.rateSlug}`),
     country,
     countryPath: `/bank-interest-rates/${type.rateSlug}`,
@@ -60,7 +80,17 @@ export default async function LoanTypeRatesPage({ params }: Props) {
   const country = resolveCountry(code);
   const href = (path: string) => countryHref(country, path);
   const type = loanTypeByRateSlug(loanType);
-  if (!type || !loanTypeAvailable(country.code, type)) notFound();
+  if (!type) notFound();
+
+  if (!loanTypeAvailable(country.code, type)) {
+    return (
+      <NotAvailableHere
+        country={country}
+        title={`${type.label}s are not offered in ${country.name}`}
+        reason={`A loan against gold jewellery is a mainstream retail product in India and the Gulf, and is not something high-street lenders in ${country.name} offer, so there are no rates to compare.`}
+      />
+    );
+  }
 
   let rates: RateWithBank[] = [];
   let coverage: RateCoverage = {
@@ -128,7 +158,7 @@ export default async function LoanTypeRatesPage({ params }: Props) {
             <Reveal delay={90}>
               <p className="mt-4 text-base leading-relaxed text-[var(--text-secondary)] sm:text-lg">
                 Published starting rates, processing fees and maximum tenures for{" "}
-                {type.label.toLowerCase()}s across Indian lenders. Sort by rate, filter by lender
+                {type.label.toLowerCase()}s across lenders in {country.name}. Sort by rate, filter by lender
                 type, then take any row straight into the calculator.
               </p>
             </Reveal>
@@ -160,7 +190,9 @@ export default async function LoanTypeRatesPage({ params }: Props) {
           Rates for other loan types
         </h2>
         <div className="flex flex-wrap gap-2">
-          {LOAN_TYPES.filter((t) => t.id !== type.id).map((t) => (
+          {loanTypesFor(country.code)
+            .filter((t) => t.id !== type.id)
+            .map((t) => (
             <Link
               key={t.id}
               href={href(`/bank-interest-rates/${t.rateSlug}`)}

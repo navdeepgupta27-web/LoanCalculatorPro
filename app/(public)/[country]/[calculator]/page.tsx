@@ -9,18 +9,19 @@ import { JsonLd } from "@/components/seo/json-ld";
 import { ButtonLink } from "@/components/ui/button";
 import { Reveal } from "@/components/ui/reveal";
 import { faqsFor } from "@/lib/faqs";
-import { formatCompact } from "@/lib/format";
+import { createFormatters } from "@/lib/format";
 import {
   breadcrumbSchema,
   faqSchema,
   pageMetadata,
   softwareApplicationSchema,
 } from "@/lib/seo";
+import { NotAvailableHere } from "@/components/country/not-available";
 import { SchemePage } from "@/components/investment/scheme-page";
 import { getSchemeRate } from "@/lib/queries";
-import { INVESTMENT_KEYWORDS, SCHEMES, schemeBySlug } from "@/lib/schemes";
+import { INVESTMENT_KEYWORDS, schemesFor, schemeBySlug } from "@/lib/schemes";
 import { countryHref, resolveCountry } from "@/lib/countries";
-import { LOAN_TYPES, loanTypeAvailable, loanTypeBySlug } from "@/lib/site";
+import { loanTypesFor, loanTypeAvailable, loanTypeBySlug } from "@/lib/site";
 
 /**
  * Every calculator landing page, served from the site root — so
@@ -39,10 +40,15 @@ import { LOAN_TYPES, loanTypeAvailable, loanTypeBySlug } from "@/lib/site";
  */
 export const dynamicParams = true;
 
-export function generateStaticParams() {
+/**
+ * Country-aware for the same reason as the rates route: a combination that
+ * 404s must not be prerendered, or it is served as not-found content under a
+ * 200 status.
+ */
+export function generateStaticParams({ params }: { params: { country: string } }) {
   return [
-    ...LOAN_TYPES.map((t) => ({ calculator: t.slug })),
-    ...SCHEMES.map((s) => ({ calculator: s.slug })),
+    ...loanTypesFor(params.country).map((t) => ({ calculator: t.slug })),
+    ...schemesFor(params.country).map((s) => ({ calculator: s.slug })),
   ];
 }
 
@@ -53,7 +59,17 @@ export async function generateMetadata({ params }: Props) {
   const country = resolveCountry(code);
 
   const scheme = schemeBySlug(calculator);
-  if (scheme && !(scheme.indiaOnly && country.code !== "in")) {
+
+  if (scheme?.indiaOnly && country.code !== "in") {
+    return pageMetadata({
+      title: `${scheme.shortName} is not available in ${country.name}`,
+      description: `${scheme.name} is an Indian government scheme. See the calculators available in ${country.name} instead.`,
+      path: countryHref(country, `/${scheme.slug}`),
+      noIndex: true,
+    });
+  }
+
+  if (scheme) {
     // CAGR is only meaningful for a single sum held throughout; anything with
     // staggered contributions reports XIRR, so the title must not promise CAGR.
     const metric = scheme.id === "lumpsum" || scheme.id === "fd" ? "CAGR" : "XIRR";
@@ -70,6 +86,17 @@ export async function generateMetadata({ params }: Props) {
   const type = loanTypeBySlug(calculator);
   if (!type) return {};
 
+  // Returning {} here would inherit the root layout's metadata, which says
+  // index — so the "not offered here" page was inviting itself into search.
+  if (!loanTypeAvailable(country.code, type)) {
+    return pageMetadata({
+      title: `${type.label}s are not offered in ${country.name}`,
+      description: `${type.label}s are not a retail product in ${country.name}. See the calculators available there instead.`,
+      path: countryHref(country, `/${type.slug}`),
+      noIndex: true,
+    });
+  }
+
   return pageMetadata({
     title: `${type.label} EMI Calculator — Part Payment & Interest Savings`,
     description: `Calculate your ${type.label.toLowerCase()} EMI with the reducing-balance method, model one-off and recurring part-payments, compare cutting the tenure against cutting the EMI, and download a full month-by-month amortisation schedule. Free and private.`,
@@ -84,12 +111,27 @@ export default async function CalculatorPage({ params }: Props) {
   const { country: code, calculator } = await params;
   const country = resolveCountry(code);
   const href = (path: string) => countryHref(country, path);
+  // Page-level figures need the country's formatter too — importing the
+  // India-bound helper here is what put "₹1.0 L – ₹10.0 Cr" on every market's
+  // amount-range line while the calculator beside it showed dollars.
+  const { compact: formatCompact } = createFormatters(country);
 
   const scheme = schemeBySlug(calculator);
-  // PPF, Sukanya Samriddhi, NPS and EPF are Indian statutory schemes. Outside
-  // India they do not exist, so the URL 404s rather than rendering a
-  // calculator governed by rules that do not apply to the reader.
-  if (scheme?.indiaOnly && country.code !== "in") notFound();
+
+  // PPF, Sukanya Samriddhi, NPS and EPF are Indian statutory schemes with no
+  // equivalent elsewhere. Rather than a calculator governed by rules that do
+  // not apply to the reader, or a bare 404, this explains the gap — it is
+  // reached most often by switching country while reading one of them.
+  if (scheme?.indiaOnly && country.code !== "in") {
+    return (
+      <NotAvailableHere
+        country={country}
+        title={`${scheme.shortName} is an Indian scheme`}
+        reason={`${scheme.name.replace(" Calculator", "")} is created by Indian law and is only open to residents there, so there is nothing meaningful to calculate for ${country.name}. Its closest counterparts elsewhere are different products with their own limits and tax treatment.`}
+      />
+    );
+  }
+
   if (scheme) {
     const rate = await getSchemeRate(country.code, scheme.id).catch(() => null);
     return (
@@ -110,12 +152,21 @@ export default async function CalculatorPage({ params }: Props) {
   }
 
   const type = loanTypeBySlug(calculator);
-  // A product this market does not offer 404s rather than presenting a
-  // calculator for a loan nobody there can take out.
-  if (!type || !loanTypeAvailable(country.code, type)) notFound();
+  if (!type) notFound();
+
+  if (!loanTypeAvailable(country.code, type)) {
+    return (
+      <NotAvailableHere
+        country={country}
+        title={`${type.label}s are not offered in ${country.name}`}
+        reason={`A loan against gold jewellery is a mainstream retail product in India and the Gulf, and is not something high-street lenders in ${country.name} offer. Rather than show a calculator for a loan you cannot take out there, here is what is available.`}
+      />
+    );
+  }
 
   const faqs = faqsFor(type.id);
-  const others = LOAN_TYPES.filter((t) => t.id !== type.id);
+  // Only products this market actually offers — the others 404.
+  const others = loanTypesFor(country.code).filter((t) => t.id !== type.id);
 
   return (
     <>

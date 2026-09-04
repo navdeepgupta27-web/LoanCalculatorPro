@@ -15,13 +15,27 @@ import type { LoanTypeId } from "./site";
 /* Blog                                                                */
 /* ------------------------------------------------------------------ */
 
-export async function getPublishedPosts(limit = 50, offset = 0): Promise<Post[]> {
+/**
+ * Published guides, newest first.
+ *
+ * `country` filters to guides written for one market. The blog index and the
+ * post pages deliberately do not pass it — they are shared pages and show
+ * everything — but the homepage strip does, so a US visitor is not offered a
+ * guide whose title is a rupee figure.
+ */
+export async function getPublishedPosts(
+  limit = 50,
+  offset = 0,
+  country?: string,
+): Promise<Post[]> {
   return all<Post>(
     `SELECT * FROM posts
-      WHERE status = 'published' AND (published_at IS NULL OR published_at <= datetime('now'))
+      WHERE status = 'published'
+        AND (published_at IS NULL OR published_at <= datetime('now'))
+        ${country ? "AND country = ?" : ""}
       ORDER BY COALESCE(published_at, created_at) DESC
       LIMIT ? OFFSET ?`,
-    [limit, offset],
+    country ? [country, limit, offset] : [limit, offset],
   );
 }
 

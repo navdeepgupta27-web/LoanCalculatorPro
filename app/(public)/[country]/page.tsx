@@ -47,7 +47,7 @@ export const revalidate = 3600;
 
 const TRUST_POINTS = [
   { icon: "🔒", label: "Runs in your browser", detail: "No data sent anywhere" },
-  { icon: "🇮🇳", label: "Built for India", detail: "Lakh/crore, GST, RBI method" },
+  { icon: "🌍", label: "Local currency", detail: "Formatted the way your country writes it" },
   { icon: "⚡", label: "Instant results", detail: "No sign-up, no email" },
   { icon: "📊", label: "Full schedule", detail: "Every instalment, exportable" },
 ];
@@ -56,10 +56,11 @@ export default async function HomePage({ params }: Props) {
   const { country: code } = await params;
   const country = resolveCountry(code);
   const href = (path: string) => countryHref(country, path);
+  const inIndia = country.code === "in";
 
   let posts = [] as Awaited<ReturnType<typeof getPublishedPosts>>;
   try {
-    posts = await getPublishedPosts(3);
+    posts = await getPublishedPosts(3, 0, country.code);
   } catch {
     // The homepage must render even if the database is unreachable.
   }
@@ -210,7 +211,7 @@ export default async function HomePage({ params }: Props) {
               align="left"
               eyebrow="The maths"
               title="How your EMI is actually calculated"
-              description="Indian lenders use the reducing-balance method. Interest each month is charged only on what you still owe, so the interest share of every instalment falls as the balance drops."
+              description="Lenders use the reducing-balance method. Interest each month is charged only on what you still owe, so the interest share of every instalment falls as the balance drops."
             />
 
             <Reveal delay={100}>
@@ -235,7 +236,7 @@ export default async function HomePage({ params }: Props) {
 
             <Reveal delay={160}>
               <p className="mt-5 text-[0.9375rem] leading-relaxed text-[var(--text-secondary)]">
-                The consequence is the part most borrowers miss: on a ₹50 lakh 20-year loan at 8.5%,{" "}
+                The consequence is the part most borrowers miss: on a 20-year loan at 8.5%,{" "}
                 <strong className="text-[var(--text)]">81% of your first year&rsquo;s payments</strong>{" "}
                 are interest, and principal does not overtake interest within a single EMI until
                 month 143. That is why a lump sum in year two is worth roughly three and a half
@@ -249,16 +250,26 @@ export default async function HomePage({ params }: Props) {
             <div className="card overflow-hidden">
               <div className="border-b border-[var(--border)] bg-[var(--bg-subtle)] px-5 py-3">
                 <p className="font-display text-sm font-bold text-[var(--text)]">
-                  Where a ₹50,00,000 home loan at 8.5% for 20 years goes
+                  {inIndia
+                    ? "Where a ₹50,00,000 home loan at 8.5% for 20 years goes"
+                    : "Where a 20-year home loan at 8.5% goes"}
                 </p>
               </div>
               <div className="divide-y divide-[var(--border)]">
-                {[
-                  { label: "You borrow", value: "₹50,00,000", tone: "text-[var(--color-principal)]" },
-                  { label: "You repay in interest", value: "₹54,13,879", tone: "text-[var(--color-interest)]" },
-                  { label: "Monthly EMI", value: "₹43,391", tone: "text-[var(--text)]" },
-                  { label: "Total repayment", value: "₹1,04,13,879", tone: "text-[var(--text)]" },
-                ].map((row) => (
+                {(inIndia
+                  ? [
+                      { label: "You borrow", value: "₹50,00,000", tone: "text-[var(--color-principal)]" },
+                      { label: "You repay in interest", value: "₹54,13,879", tone: "text-[var(--color-interest)]" },
+                      { label: "Monthly EMI", value: "₹43,391", tone: "text-[var(--text)]" },
+                      { label: "Total repayment", value: "₹1,04,13,879", tone: "text-[var(--text)]" },
+                    ]
+                  : [
+                      { label: "Interest as a share of what you repay", value: "52%", tone: "text-[var(--color-interest)]" },
+                      { label: "Interest in your first year's payments", value: "81%", tone: "text-[var(--color-interest)]" },
+                      { label: "Principal overtakes interest at", value: "month 143", tone: "text-[var(--text)]" },
+                      { label: "Total repaid, as a multiple of the loan", value: "2.08×", tone: "text-[var(--text)]" },
+                    ]
+                ).map((row) => (
                   <div key={row.label} className="flex items-center justify-between px-5 py-3.5">
                     <span className="text-sm text-[var(--text-secondary)]">{row.label}</span>
                     <span className={`font-display text-base font-bold tnum ${row.tone}`}>
@@ -269,9 +280,19 @@ export default async function HomePage({ params }: Props) {
               </div>
               <div className="bg-accent-50 px-5 py-4 dark:bg-accent-950/30">
                 <p className="text-sm text-accent-900 dark:text-accent-200">
-                  Add a single <strong>₹5,00,000</strong> part-payment in month 24 and cut the
-                  tenure: you finish <strong>3 years 9 months early</strong> and avoid{" "}
-                  <strong>₹14,57,301</strong> in interest.
+                  {inIndia ? (
+                    <>
+                      Add a single <strong>₹5,00,000</strong> part-payment in month 24 and cut the
+                      tenure: you finish <strong>3 years 9 months early</strong> and avoid{" "}
+                      <strong>₹14,57,301</strong> in interest.
+                    </>
+                  ) : (
+                    <>
+                      Put a lump sum of a tenth of the loan in at month 24 and cut the tenure: you
+                      finish <strong>3 years 9 months early</strong> and cut the interest bill by{" "}
+                      <strong>about 27%</strong>.
+                    </>
+                  )}
                 </p>
                 <p className="mt-2 text-xs text-accent-800/80 dark:text-accent-300/80">
                   Figures produced by this calculator on the inputs shown — change them above to

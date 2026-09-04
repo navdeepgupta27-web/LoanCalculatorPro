@@ -59,7 +59,7 @@ export const LOAN_TYPE_FAQS: Record<LoanTypeId, Faq[]> = {
     {
       question: "How much of my home loan EMI is interest in the early years?",
       answer:
-        "On a ₹50 lakh 20-year home loan at 8.5%, about 81% of your first year's instalments go to interest and only 19% reduces the principal. The crossover — where principal overtakes interest within a single EMI — does not arrive until month 143, in the twelfth year. This is precisely why prepaying early has such a large effect: the same ₹5 lakh saves roughly ₹14.6 lakh in interest if paid in month 24, but only about ₹4.2 lakh if paid in month 144. The year-by-year chart on this page shows the split for your own numbers.",
+        "On a 20-year home loan at 8.5%, about 81% of your first year's instalments go to interest and only 19% reduces the principal. The crossover — where principal overtakes interest within a single EMI — does not arrive until month 143, in the twelfth year. This is precisely why prepaying early has such a large effect: the same lump sum is worth roughly three and a half times as much in year two as it is in year twelve. The year-by-year chart on this page shows the split for your own numbers.",
     },
     {
       question: "Can I claim tax deductions on a home loan?",
