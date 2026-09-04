@@ -14,7 +14,7 @@ export const GENERAL_FAQS: Faq[] = [
   {
     question: "How is EMI calculated?",
     answer:
-      "EMI = P × r × (1+r)^n ÷ ((1+r)^n − 1), where P is the principal, r the monthly interest rate (annual rate ÷ 12 ÷ 100) and n the number of monthly instalments. This is the reducing-balance method every Indian lender uses: interest each month is charged only on the balance still outstanding, so the interest portion of your EMI shrinks and the principal portion grows as the loan runs down.",
+      "EMI = P × r × (1+r)^n ÷ ((1+r)^n − 1), where P is the principal, r the monthly interest rate (annual rate ÷ 12 ÷ 100) and n the number of monthly instalments. This is the reducing-balance method lenders use: interest each month is charged only on the balance still outstanding, so the interest portion of your EMI shrinks and the principal portion grows as the loan runs down.",
   },
   {
     question: "Should I reduce my tenure or reduce my EMI when I make a part payment?",
@@ -27,9 +27,9 @@ export const GENERAL_FAQS: Faq[] = [
       "Yes, substantially. Interest is charged on the outstanding balance, so a rupee repaid in year 2 avoids interest for the remaining 18 years, while the same rupee in year 15 avoids only five years of it. On a typical 20-year home loan, a lump sum in year 2 can save several times what the identical amount saves in year 12.",
   },
   {
-    question: "Are processing fees and GST included in the calculation?",
+    question: "Are processing fees and tax on them included in the calculation?",
     answer:
-      "Yes. The calculator applies your processing fee as a percentage of the sanctioned amount, adds GST on that fee (18% is the standard rate on financial services in India), and reports a Total Cost of Loan that includes both. This matters when comparing lenders: a bank offering a rate 0.1% lower but charging double the processing fee can easily be the more expensive option on a short tenure.",
+      "Yes. The calculator applies your processing fee as a percentage of the sanctioned amount, adds the tax rate you enter on that fee, and reports a Total Cost of Loan that includes both. This matters when comparing lenders: a bank offering a rate 0.1% lower but charging double the processing fee can easily be the more expensive option on a short tenure.",
   },
   {
     question: "Can I compare loan offers from different banks?",
@@ -44,7 +44,7 @@ export const GENERAL_FAQS: Faq[] = [
   {
     question: "Are the bank interest rates on this site current?",
     answer:
-      "Every rate row carries the date it was recorded and a link to the lender's own published page. Rates in India change frequently — floating rates move with repo-linked benchmarks, and the rate you are actually offered depends on your credit score, income, loan-to-value ratio and existing relationship with the bank. Always confirm on the lender's website or in writing before acting on any figure.",
+      "Every rate row carries the date it was recorded and a link to the lender's own published page. Rates change frequently — floating rates move with the lender's benchmark, and the rate you are actually offered depends on your credit score, income, loan-to-value ratio and existing relationship with the bank. Always confirm on the lender's website or in writing before acting on any figure.",
   },
   {
     question: "Is this financial advice?",

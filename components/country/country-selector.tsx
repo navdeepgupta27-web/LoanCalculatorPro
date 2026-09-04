@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 
 import { COUNTRIES, countryByCode, groupedCountries, type Country } from "@/lib/countries";
 import { cn } from "@/lib/utils";
@@ -34,6 +34,11 @@ export function CountrySelector({ className }: { className?: string }) {
   const pathname = usePathname();
   const current = useCountryFromPath();
 
+  // A country that is not prerendered renders on demand, which can take a
+  // second or two. The transition gives the click immediate feedback instead
+  // of leaving the old page on screen looking frozen.
+  const [pending, startTransition] = useTransition();
+  const [target, setTarget] = useState<Country | null>(null);
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const boxRef = useRef<HTMLDivElement>(null);
@@ -68,6 +73,7 @@ export function CountrySelector({ className }: { className?: string }) {
   const choose = (next: Country) => {
     setOpen(false);
     setQuery("");
+    setTarget(next);
 
     try {
       document.cookie = `${COOKIE}=${next.code}; path=/; max-age=${COOKIE_MAX_AGE}; samesite=lax`;
@@ -78,12 +84,11 @@ export function CountrySelector({ className }: { className?: string }) {
     const segments = pathname.split("/");
     // Swap the country segment when there is one; otherwise this is a shared
     // page like the blog, and the visitor goes to that country's calculator.
-    if (countryByCode(segments[1])) {
-      segments[1] = next.code;
-      router.push(segments.join("/"));
-    } else {
-      router.push(`/${next.code}`);
-    }
+    const href = countryByCode(segments[1])
+      ? [...segments.slice(0, 1), next.code, ...segments.slice(2)].join("/")
+      : `/${next.code}`;
+
+    startTransition(() => router.push(href));
   };
 
   const row = (c: Country) => (
@@ -112,21 +117,32 @@ export function CountrySelector({ className }: { className?: string }) {
         aria-expanded={open}
         aria-haspopup="listbox"
         aria-label={`Country: ${current.name}. Change country`}
+        aria-busy={pending}
+        disabled={pending}
         className="flex h-9 items-center gap-1.5 rounded-lg border border-[var(--border)] bg-[var(--surface)] px-2.5 text-sm font-semibold text-[var(--text-secondary)] transition-colors hover:border-brand-400 hover:text-brand-600 dark:hover:text-brand-300"
       >
-        <span className="text-base leading-none">{flag(current.code)}</span>
-        <span className="hidden sm:inline">{current.currency}</span>
-        <svg
-          viewBox="0 0 20 20"
-          className={cn("h-3.5 w-3.5 transition-transform duration-200", open && "rotate-180")}
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2.2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <path d="m5 7.5 5 5 5-5" />
-        </svg>
+        <span className="text-base leading-none">{flag((pending && target ? target : current).code)}</span>
+        <span className="hidden sm:inline">
+          {(pending && target ? target : current).currency}
+        </span>
+        {pending ? (
+          <svg viewBox="0 0 24 24" className="h-3.5 w-3.5 animate-spin" fill="none" aria-hidden="true">
+            <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="3" className="opacity-25" />
+            <path d="M21 12a9 9 0 0 0-9-9" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+          </svg>
+        ) : (
+          <svg
+            viewBox="0 0 20 20"
+            className={cn("h-3.5 w-3.5 transition-transform duration-200", open && "rotate-180")}
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="m5 7.5 5 5 5-5" />
+          </svg>
+        )}
       </button>
 
       {open && (
