@@ -2,7 +2,7 @@
   "name": "loancalculatorpro",
   "version": "1.0.0",
   "private": true,
-  "description": "LoanCalc Pro \u2014 EMI, part-payment and bank-comparison calculator for Indian loans",
+  "description": "LoanCalc Pro — EMI, part-payment and bank-comparison calculator for Indian loans",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -22,7 +22,8 @@
     "db:seed:prod": "node --conditions=react-server --env-file=.env.prod.local --import tsx scripts/seed.ts",
     "db:guides:prod": "node --conditions=react-server --env-file=.env.prod.local --import tsx scripts/add-guides.ts",
     "db:scheme-rates:prod": "node --conditions=react-server --env-file=.env.prod.local --import tsx scripts/seed-scheme-rates.ts",
-    "db:investment-guides:prod": "node --conditions=react-server --env-file=.env.prod.local --import tsx scripts/add-investment-guides.ts"
+    "db:investment-guides:prod": "node --conditions=react-server --env-file=.env.prod.local --import tsx scripts/add-investment-guides.ts",
+    "verify:sw": "node --import tsx scripts/verify-sw.ts"
   },
   "dependencies": {
     "@libsql/client": "^0.17.4",

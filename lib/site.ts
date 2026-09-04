@@ -4,6 +4,8 @@
  * data and the footer is defined exactly once here.
  */
 
+import { INVESTMENT_KEYWORDS, SCHEMES } from "./schemes";
+
 export const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ||
   "https://loancalculatorpro.in";
@@ -13,9 +15,9 @@ export const SITE = {
   legalName: "Loan Calculator Pro",
   domain: "loancalculatorpro.in",
   url: SITE_URL,
-  tagline: "India's most detailed EMI & loan comparison calculator",
+  tagline: "India's most detailed loan EMI and investment calculators",
   description:
-    "Free advanced EMI calculator for home, car, personal, business, education and gold loans. Model part-payments, compare banks side by side, and download a full amortisation schedule. 100% private — everything runs in your browser.",
+    "Free loan EMI and investment calculators for India. Home, car, personal, business, education and gold loan EMIs with part-payment modelling and bank comparison, plus SIP, lumpsum, FD, RD, PPF, Sukanya Samriddhi, NPS and EPF calculators with CAGR, XIRR and absolute return. 100% private — everything runs in your browser.",
   locale: "en_IN",
   language: "en-IN",
   country: "IN",
@@ -117,7 +119,17 @@ export const INTENT_KEYWORDS = [
   "loan balance schedule month wise",
 ];
 
-export const ALL_KEYWORDS = [...CORE_KEYWORDS, ...INTENT_KEYWORDS, ...RATE_KEYWORDS];
+/**
+ * The site covers two families of tool now — borrowing and investing — so the
+ * sitewide keyword set has to carry both. Leaving the investment terms out
+ * meant every loan page described a site that appeared to do only loans.
+ */
+export const ALL_KEYWORDS = [
+  ...CORE_KEYWORDS,
+  ...INTENT_KEYWORDS,
+  ...RATE_KEYWORDS,
+  ...INVESTMENT_KEYWORDS,
+];
 
 /* ------------------------------------------------------------------ */
 /* Bank-name queries                                                   */
@@ -352,11 +364,63 @@ export function loanTypeByRateSlug(slug: string): LoanTypeConfig | undefined {
 /* Navigation                                                          */
 /* ------------------------------------------------------------------ */
 
+export interface NavItem {
+  label: string;
+  shortLabel: string;
+  href: string;
+  emoji: string;
+  caption: string;
+}
+
+export interface NavMenu {
+  label: string;
+  /** The hub page. The trigger is a real link, not a dead dropdown handle. */
+  href: string;
+  items: NavItem[];
+  /** Extra destination pinned under the list. */
+  footerLink: { label: string; href: string };
+}
+
+/**
+ * The two header dropdowns.
+ *
+ * Every calculator is reachable from the header on every page, with its own
+ * name as the anchor text. That sitewide repetition is what tells a search
+ * engine these are the site's main destinations — before this, the eight
+ * investment calculators were linked from one nav item and their own hub, and
+ * nothing else on the site pointed at them.
+ */
+export const NAV_MENUS: NavMenu[] = [
+  {
+    label: "Loan Calculators",
+    href: "/",
+    items: LOAN_TYPES.map((t) => ({
+      label: `${t.label} EMI Calculator`,
+      shortLabel: t.shortLabel,
+      href: `/${t.slug}`,
+      emoji: t.emoji,
+      caption: "EMI calculator",
+    })),
+    footerLink: { label: "Compare bank loans", href: "/compare-loans" },
+  },
+  {
+    label: "Investment Calculators",
+    href: "/investment-calculators",
+    items: SCHEMES.map((s) => ({
+      label: s.name,
+      shortLabel: s.shortName,
+      href: `/${s.slug}`,
+      emoji: s.emoji,
+      caption: s.rateIsStatutory ? "Government scheme" : "Projection tool",
+    })),
+    footerLink: { label: "Compare investments", href: "/compare-investments" },
+  },
+];
+
+/** Flat header items, shown after the two dropdowns. */
 export const PRIMARY_NAV = [
-  { label: "Calculator", href: "/" },
-  { label: "Investments", href: "/investment-calculators" },
-  { label: "Compare Banks", href: "/compare-loans" },
   { label: "Interest Rates", href: "/bank-interest-rates" },
+  { label: "Compare Banks", href: "/compare-loans" },
   { label: "Guides", href: "/blog" },
   { label: "FAQ", href: "/faq" },
 ] as const;

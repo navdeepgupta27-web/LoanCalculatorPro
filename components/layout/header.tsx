@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 
-import { LOAN_TYPES, PRIMARY_NAV } from "@/lib/site";
+import { NAV_MENUS, PRIMARY_NAV } from "@/lib/site";
 import { cn } from "@/lib/utils";
 
 import { Logo } from "./logo";
@@ -13,7 +13,8 @@ import { ThemeToggle } from "./theme";
 export function Header() {
   const pathname = usePathname();
   const [scrolled, setScrolled] = useState(false);
-  const [calcOpen, setCalcOpen] = useState(false);
+  // Which dropdown is open, by its label — only one at a time.
+  const [openMenu, setOpenMenu] = useState<string | null>(null);
 
   // The mobile sheet records the path it was opened on rather than a bare
   // boolean, so any navigation closes it by derivation — no effect watching
@@ -66,67 +67,86 @@ export function Header() {
           <Logo />
 
           <nav aria-label="Primary" className="hidden items-center gap-0.5 lg:flex">
-            {/* The calculator entry expands into the six loan types. */}
-            <div
-              className="relative"
-              onMouseEnter={() => setCalcOpen(true)}
-              onMouseLeave={() => setCalcOpen(false)}
-            >
-              <Link
-                href="/"
-                className={cn(
-                  "flex items-center gap-1 rounded-lg px-3 py-2 text-sm font-semibold transition-colors",
-                  isActive("/")
-                    ? "text-brand-700 dark:text-brand-300"
-                    : "text-[var(--text-secondary)] hover:text-[var(--text)]",
-                )}
-                aria-expanded={calcOpen}
-              >
-                Calculators
-                <svg
-                  viewBox="0 0 20 20"
-                  className={cn("h-3.5 w-3.5 transition-transform duration-200", calcOpen && "rotate-180")}
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2.2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
+            {NAV_MENUS.map((menu) => {
+              const open = openMenu === menu.label;
+              return (
+                <div
+                  key={menu.label}
+                  className="relative"
+                  onMouseEnter={() => setOpenMenu(menu.label)}
+                  onMouseLeave={() => setOpenMenu(null)}
                 >
-                  <path d="m5 7.5 5 5 5-5" />
-                </svg>
-              </Link>
-
-              <div
-                className={cn(
-                  "absolute left-0 top-full w-[27rem] pt-2 transition-all duration-200",
-                  calcOpen
-                    ? "visible translate-y-0 opacity-100"
-                    : "invisible -translate-y-1 opacity-0",
-                )}
-              >
-                <div className="card grid grid-cols-2 gap-1 p-2 shadow-[var(--shadow-lift)]">
-                  {LOAN_TYPES.map((t) => (
-                    <Link
-                      key={t.id}
-                      href={`/${t.slug}`}
-                      className="group flex items-center gap-2.5 rounded-lg px-3 py-2.5 transition-colors hover:bg-[var(--bg-subtle)]"
+                  <Link
+                    href={menu.href}
+                    className={cn(
+                      "flex items-center gap-1 rounded-lg px-3 py-2 text-sm font-semibold transition-colors",
+                      isActive(menu.href)
+                        ? "text-brand-700 dark:text-brand-300"
+                        : "text-[var(--text-secondary)] hover:text-[var(--text)]",
+                    )}
+                    aria-expanded={open}
+                  >
+                    {menu.label === "Loan Calculators" ? "Loans" : "Investments"}
+                    <svg
+                      viewBox="0 0 20 20"
+                      className={cn(
+                        "h-3.5 w-3.5 transition-transform duration-200",
+                        open && "rotate-180",
+                      )}
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2.2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
                     >
-                      <span className="text-lg transition-transform duration-200 group-hover:scale-110">
-                        {t.emoji}
-                      </span>
-                      <span className="flex flex-col">
-                        <span className="text-[0.8125rem] font-semibold text-[var(--text)]">
-                          {t.label}
-                        </span>
-                        <span className="text-[0.7rem] text-[var(--text-muted)]">EMI calculator</span>
-                      </span>
-                    </Link>
-                  ))}
-                </div>
-              </div>
-            </div>
+                      <path d="m5 7.5 5 5 5-5" />
+                    </svg>
+                  </Link>
 
-            {PRIMARY_NAV.filter((n) => n.href !== "/").map((item) => (
+                  <div
+                    className={cn(
+                      "absolute left-0 top-full w-[30rem] pt-2 transition-all duration-200",
+                      open
+                        ? "visible translate-y-0 opacity-100"
+                        : "invisible -translate-y-1 opacity-0",
+                    )}
+                  >
+                    <div className="card p-2 shadow-[var(--shadow-lift)]">
+                      <div className="grid grid-cols-2 gap-1">
+                        {menu.items.map((item) => (
+                          <Link
+                            key={item.href}
+                            href={item.href}
+                            className="group flex items-center gap-2.5 rounded-lg px-3 py-2.5 transition-colors hover:bg-[var(--bg-subtle)]"
+                          >
+                            <span className="text-lg transition-transform duration-200 group-hover:scale-110">
+                              {item.emoji}
+                            </span>
+                            <span className="flex min-w-0 flex-col">
+                              <span className="truncate text-[0.8125rem] font-semibold text-[var(--text)]">
+                                {item.label}
+                              </span>
+                              <span className="text-[0.7rem] text-[var(--text-muted)]">
+                                {item.caption}
+                              </span>
+                            </span>
+                          </Link>
+                        ))}
+                      </div>
+                      <Link
+                        href={menu.footerLink.href}
+                        className="mt-1 flex items-center justify-between rounded-lg border-t border-[var(--border)] px-3 pb-1 pt-2.5 text-[0.8125rem] font-semibold text-brand-600 transition-colors hover:text-brand-500 dark:text-brand-300"
+                      >
+                        {menu.footerLink.label}
+                        <span aria-hidden="true">→</span>
+                      </Link>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+
+            {PRIMARY_NAV.map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
@@ -207,27 +227,42 @@ export function Header() {
             menuOpen ? "translate-y-0 opacity-100" : "-translate-y-4 opacity-0",
           )}
         >
-          <p className="px-1 pb-2 text-[0.7rem] font-bold uppercase tracking-wider text-[var(--text-muted)]">
-            Calculators
-          </p>
-          <div className="grid grid-cols-2 gap-1.5">
-            {LOAN_TYPES.map((t) => (
-              <Link
-                key={t.id}
-                href={`/${t.slug}`}
-                className="flex items-center gap-2 rounded-xl border border-[var(--border)] px-3 py-2.5 text-sm font-semibold text-[var(--text)] transition-colors hover:bg-[var(--bg-subtle)]"
+          {NAV_MENUS.map((menu, index) => (
+            <div key={menu.label}>
+              <p
+                className={cn(
+                  "px-1 pb-2 text-[0.7rem] font-bold uppercase tracking-wider text-[var(--text-muted)]",
+                  index > 0 && "pt-5",
+                )}
               >
-                <span>{t.emoji}</span>
-                {t.shortLabel}
+                {menu.label}
+              </p>
+              <div className="grid grid-cols-2 gap-1.5">
+                {menu.items.map((item) => (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className="flex items-center gap-2 rounded-xl border border-[var(--border)] px-3 py-2.5 text-sm font-semibold text-[var(--text)] transition-colors hover:bg-[var(--bg-subtle)]"
+                  >
+                    <span>{item.emoji}</span>
+                    {item.shortLabel}
+                  </Link>
+                ))}
+              </div>
+              <Link
+                href={menu.footerLink.href}
+                className="mt-1.5 block px-1 text-[0.8125rem] font-semibold text-brand-600 dark:text-brand-300"
+              >
+                {menu.footerLink.label} →
               </Link>
-            ))}
-          </div>
+            </div>
+          ))}
 
           <p className="px-1 pb-2 pt-5 text-[0.7rem] font-bold uppercase tracking-wider text-[var(--text-muted)]">
             Explore
           </p>
           <div className="flex flex-col gap-0.5">
-            {PRIMARY_NAV.filter((n) => n.href !== "/").map((item) => (
+            {PRIMARY_NAV.map((item) => (
               <Link
                 key={item.href}
                 href={item.href}

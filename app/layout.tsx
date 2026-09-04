@@ -8,6 +8,7 @@ import "./globals.css";
 
 import { ActivityTracker } from "@/components/analytics/activity-tracker";
 import { themeInitScript } from "@/components/layout/theme";
+import { InstallPrompt } from "@/components/pwa/install-prompt";
 import { JsonLd } from "@/components/seo/json-ld";
 import { ToastProvider } from "@/components/ui/toast";
 import { organizationSchema, websiteSchema } from "@/lib/seo";
@@ -41,6 +42,14 @@ export const metadata: Metadata = {
   creator: SITE.name,
   publisher: SITE.name,
   category: "finance",
+  // Installed on an iPhone, the app runs without Safari's chrome. "black"
+  // keeps the status bar out of the layout's way — "black-translucent" would
+  // put content underneath it and need safe-area padding everywhere.
+  appleWebApp: {
+    capable: true,
+    title: "Loan Calc Pro",
+    statusBarStyle: "black",
+  },
   alternates: {
     canonical: SITE_URL,
   },
@@ -115,6 +124,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <ToastProvider>{children}</ToastProvider>
 
         <ActivityTracker />
+
+        {/* Registers the service worker and offers the home-screen install. */}
+        <InstallPrompt />
 
         {/*
           Vercel Analytics — audience and page-view data in the Vercel

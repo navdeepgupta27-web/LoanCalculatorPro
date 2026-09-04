@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 
+import { SCHEMES } from "./schemes";
 import { ALL_KEYWORDS, LOAN_TYPES, SITE, SITE_URL, SOCIAL_LINKS } from "./site";
 
 /* ------------------------------------------------------------------ */
@@ -134,10 +135,10 @@ export function softwareApplicationSchema() {
     "@context": "https://schema.org",
     "@type": "WebApplication",
     "@id": `${SITE_URL}/#webapp`,
-    name: "Loan Calculator Pro EMI & Loan Comparison Calculator",
+    name: "Loan Calculator Pro — Loan EMI & Investment Calculators",
     url: SITE_URL,
     applicationCategory: "FinanceApplication",
-    applicationSubCategory: "Loan Calculator",
+    applicationSubCategory: "Loan and investment calculator",
     operatingSystem: "Any (web browser)",
     browserRequirements: "Requires JavaScript",
     inLanguage: SITE.language,
@@ -151,6 +152,10 @@ export function softwareApplicationSchema() {
       "Processing fee and GST in the total cost",
       "Month-by-month and year-by-year amortisation schedule",
       "CSV export and printable schedule",
+      "SIP, lumpsum, FD and RD maturity projections",
+      "PPF, Sukanya Samriddhi, NPS and EPF calculators",
+      "Absolute return, CAGR and XIRR on every projection",
+      "Side-by-side investment comparison with risk, lock-in and tax treatment",
     ],
     publisher: { "@id": `${SITE_URL}/#organization` },
   };
@@ -239,10 +244,55 @@ export function itemListSchema(name: string, items: { name: string; path: string
   };
 }
 
-/** Every calculator landing page, for the site-wide ItemList on the homepage. */
+/**
+ * Every calculator on the site, in one ItemList on the homepage.
+ *
+ * This deliberately covers both families. Listing only the loan calculators
+ * described a site that appears to do half of what it does, and gave a search
+ * engine nothing to associate the homepage with "SIP calculator" or
+ * "PPF calculator".
+ */
 export function calculatorListSchema() {
-  return itemListSchema(
-    "Loan EMI calculators",
-    LOAN_TYPES.map((t) => ({ name: `${t.label} EMI Calculator`, path: `/${t.slug}` })),
-  );
+  return itemListSchema("Loan and investment calculators", [
+    ...LOAN_TYPES.map((t) => ({
+      name: `${t.label} EMI Calculator`,
+      path: `/${t.slug}`,
+    })),
+    ...SCHEMES.map((s) => ({ name: s.name, path: `/${s.slug}` })),
+  ]);
+}
+
+/**
+ * The site's main destinations as SiteNavigationElement.
+ *
+ * Sitelinks are chosen algorithmically and cannot be requested, but the choice
+ * is made from a site's own navigation and internal linking. This states that
+ * structure explicitly rather than leaving it to be inferred from the markup.
+ */
+export function siteNavigationSchema() {
+  const entries = [
+    { name: "Home Loan Calculator", path: "/home-loan-emi-calculator" },
+    { name: "Personal Loan Calculator", path: "/personal-loan-emi-calculator" },
+    { name: "SIP Calculator", path: "/sip-calculator" },
+    { name: "PPF Calculator", path: "/ppf-calculator" },
+    { name: "FD Calculator", path: "/fd-calculator" },
+    { name: "Investment Calculators", path: "/investment-calculators" },
+    { name: "Compare Bank Loans", path: "/compare-loans" },
+    { name: "Compare Investments", path: "/compare-investments" },
+    { name: "Bank Interest Rates", path: "/bank-interest-rates" },
+    { name: "Money Guides", path: "/blog" },
+  ];
+
+  return {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    "@id": `${SITE_URL}/#sitenav`,
+    name: `${SITE.name} navigation`,
+    itemListElement: entries.map((e, i) => ({
+      "@type": "SiteNavigationElement",
+      position: i + 1,
+      name: e.name,
+      url: `${SITE_URL}${e.path}`,
+    })),
+  };
 }
