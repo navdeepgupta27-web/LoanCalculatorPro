@@ -13,6 +13,7 @@ const NAV = [
   { href: "/admin/feedback", label: "Feedback", icon: "M3 5h14v9H7l-4 3z" },
   { href: "/admin/activity", label: "Activity", icon: "M3 12h3l2-6 3 12 2.5-7H17" },
   { href: "/admin/rates", label: "Bank rates", icon: "M3 16h14M4 8h12M5 8V6l5-3 5 3v2M6 8v8m8-8v8" },
+  { href: "/admin/scheme-rates", label: "Scheme rates", icon: "M3 13l4-4 3 3 6-6M13 6h4v4" },
   { href: "/admin/blog", label: "Blog", icon: "M5 3h7l3 3v11H5zM12 3v3h3" },
 ];
 
