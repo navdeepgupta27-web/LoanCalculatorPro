@@ -14,8 +14,9 @@ export default function manifest(): MetadataRoute.Manifest {
     scope: "/",
     display: "standalone",
     orientation: "portrait-primary",
-    // Matches the dark default so the PWA splash screen does not flash white.
-    background_color: "#070a16",
+    // Matches the light default so the PWA splash screen does not flash a
+    // different colour before the page paints.
+    background_color: "#f6f7fb",
     theme_color: SITE.themeColor,
     lang: "en-IN",
     dir: "ltr",
