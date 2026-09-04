@@ -89,6 +89,23 @@ export const SCHEMA_STATEMENTS: string[] = [
    )`,
   `CREATE INDEX IF NOT EXISTS idx_rates_type ON rates (loan_type, verified)`,
 
+  /* Government-set rates for PPF, Sukanya Samriddhi, EPF and the like.
+     Kept out of the code because they are revised quarterly (small savings)
+     or annually (EPF), and carry a source and date exactly like bank rates. */
+  `CREATE TABLE IF NOT EXISTS scheme_rates (
+     id             INTEGER PRIMARY KEY AUTOINCREMENT,
+     scheme_id      TEXT    NOT NULL UNIQUE,
+     rate           REAL,
+     /* Free text, e.g. "Q2 FY 2026-27 (Jul-Sep 2026)". */
+     period_label   TEXT,
+     source_url     TEXT,
+     effective_date TEXT,
+     verified       INTEGER NOT NULL DEFAULT 0,
+     notes          TEXT,
+     updated_at     TEXT    NOT NULL DEFAULT (datetime('now'))
+   )`,
+  `CREATE INDEX IF NOT EXISTS idx_scheme_rates_verified ON scheme_rates (verified)`,
+
   `CREATE TABLE IF NOT EXISTS settings (
      key        TEXT PRIMARY KEY,
      value      TEXT,

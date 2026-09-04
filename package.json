@@ -2,7 +2,7 @@
   "name": "loancalculatorpro",
   "version": "1.0.0",
   "private": true,
-  "description": "LoanCalc Pro — EMI, part-payment and bank-comparison calculator for Indian loans",
+  "description": "LoanCalc Pro \u2014 EMI, part-payment and bank-comparison calculator for Indian loans",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -12,7 +12,17 @@
     "db:seed": "node --conditions=react-server --env-file-if-exists=.env.local --import tsx scripts/seed.ts",
     "verify:examples": "node --env-file-if-exists=.env.local --import tsx scripts/verify-examples.ts",
     "gen:secret": "node scripts/gen-secret.mjs",
-    "gen:hash": "node scripts/gen-hash.mjs"
+    "gen:hash": "node scripts/gen-hash.mjs",
+    "db:guides": "node --conditions=react-server --env-file-if-exists=.env.local --import tsx scripts/add-guides.ts",
+    "guide:figures": "node --import tsx scripts/guide-figures.ts",
+    "verify:investment": "node --import tsx scripts/verify-investment.ts",
+    "db:scheme-rates": "node --conditions=react-server --env-file-if-exists=.env.local --import tsx scripts/seed-scheme-rates.ts",
+    "guide:investment-figures": "node --import tsx scripts/investment-guide-figures.ts",
+    "db:investment-guides": "node --conditions=react-server --env-file-if-exists=.env.local --import tsx scripts/add-investment-guides.ts",
+    "db:seed:prod": "node --conditions=react-server --env-file=.env.prod.local --import tsx scripts/seed.ts",
+    "db:guides:prod": "node --conditions=react-server --env-file=.env.prod.local --import tsx scripts/add-guides.ts",
+    "db:scheme-rates:prod": "node --conditions=react-server --env-file=.env.prod.local --import tsx scripts/seed-scheme-rates.ts",
+    "db:investment-guides:prod": "node --conditions=react-server --env-file=.env.prod.local --import tsx scripts/add-investment-guides.ts"
   },
   "dependencies": {
     "@libsql/client": "^0.17.4",

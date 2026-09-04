@@ -16,27 +16,50 @@ import {
   pageMetadata,
   softwareApplicationSchema,
 } from "@/lib/seo";
+import { SchemePage } from "@/components/investment/scheme-page";
+import { getSchemeRate } from "@/lib/queries";
+import { INVESTMENT_KEYWORDS, SCHEMES, schemeBySlug } from "@/lib/schemes";
 import { LOAN_TYPES, loanTypeBySlug } from "@/lib/site";
 
 /**
- * Per-loan-type landing pages, served from the site root
- * (/home-loan-emi-calculator rather than /calculators/home) because a
- * top-level, keyword-exact URL is the strongest signal available for these
- * high-competition search terms.
+ * Every calculator landing page, served from the site root — so
+ * /home-loan-emi-calculator and /sip-calculator rather than nested paths,
+ * because a top-level keyword-exact URL is the strongest signal available for
+ * these high-competition terms.
  *
- * `dynamicParams = false` means anything outside the six known slugs 404s
- * instead of rendering an empty calculator on an arbitrary URL.
+ * One dynamic segment serves both families: Next.js gives static routes
+ * priority over a dynamic one, so /blog and /admin are unaffected.
+ *
+ * `dynamicParams = false` means anything outside the known slugs 404s instead
+ * of rendering an empty calculator on an arbitrary URL.
  */
 export const dynamicParams = false;
 
 export function generateStaticParams() {
-  return LOAN_TYPES.map((t) => ({ calculator: t.slug }));
+  return [
+    ...LOAN_TYPES.map((t) => ({ calculator: t.slug })),
+    ...SCHEMES.map((s) => ({ calculator: s.slug })),
+  ];
 }
 
 type Props = { params: Promise<{ calculator: string }> };
 
 export async function generateMetadata({ params }: Props) {
   const { calculator } = await params;
+
+  const scheme = schemeBySlug(calculator);
+  if (scheme) {
+    // CAGR is only meaningful for a single sum held throughout; anything with
+    // staggered contributions reports XIRR, so the title must not promise CAGR.
+    const metric = scheme.id === "lumpsum" || scheme.id === "fd" ? "CAGR" : "XIRR";
+    return pageMetadata({
+      title: `${scheme.name} — Returns, Maturity Value & ${scheme.rateIsStatutory ? "Current Rate" : metric}`,
+      description: `${scheme.blurb} See maturity value, absolute return and ${metric}, with risk, lock-in and taxation stated alongside the number.`,
+      path: `/${scheme.slug}`,
+      keywords: [...scheme.keywords, ...INVESTMENT_KEYWORDS],
+    });
+  }
+
   const type = loanTypeBySlug(calculator);
   if (!type) return {};
 
@@ -50,6 +73,27 @@ export async function generateMetadata({ params }: Props) {
 
 export default async function CalculatorPage({ params }: Props) {
   const { calculator } = await params;
+
+  const scheme = schemeBySlug(calculator);
+  if (scheme) {
+    const rate = await getSchemeRate(scheme.id).catch(() => null);
+    return (
+      <>
+        <JsonLd
+          data={[
+            softwareApplicationSchema(),
+            breadcrumbSchema([
+              { name: "Home", path: "/" },
+              { name: "Investment Calculators", path: "/investment-calculators" },
+              { name: scheme.name, path: `/${scheme.slug}` },
+            ]),
+          ]}
+        />
+        <SchemePage scheme={scheme} rate={rate} />
+      </>
+    );
+  }
+
   const type = loanTypeBySlug(calculator);
   if (!type) notFound();
 

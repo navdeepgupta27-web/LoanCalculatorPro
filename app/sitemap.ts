@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 
 import { getPublishedPosts } from "@/lib/queries";
+import { SCHEMES } from "@/lib/schemes";
 import { LOAN_TYPES, SITE_URL } from "@/lib/site";
 
 // Re-generated hourly so a newly published post appears without a redeploy.
@@ -13,6 +14,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: SITE_URL, lastModified: now, changeFrequency: "daily", priority: 1 },
     { url: `${SITE_URL}/compare-loans`, lastModified: now, changeFrequency: "weekly", priority: 0.9 },
     { url: `${SITE_URL}/bank-interest-rates`, lastModified: now, changeFrequency: "daily", priority: 0.9 },
+    { url: `${SITE_URL}/investment-calculators`, lastModified: now, changeFrequency: "weekly", priority: 0.9 },
+    { url: `${SITE_URL}/compare-investments`, lastModified: now, changeFrequency: "weekly", priority: 0.85 },
     { url: `${SITE_URL}/blog`, lastModified: now, changeFrequency: "daily", priority: 0.8 },
     { url: `${SITE_URL}/faq`, lastModified: now, changeFrequency: "monthly", priority: 0.7 },
     { url: `${SITE_URL}/feedback`, lastModified: now, changeFrequency: "monthly", priority: 0.5 },
@@ -28,6 +31,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     lastModified: now,
     changeFrequency: "weekly",
     priority: 0.95,
+  }));
+
+  const schemeRoutes: MetadataRoute.Sitemap = SCHEMES.map((s) => ({
+    url: `${SITE_URL}/${s.slug}`,
+    lastModified: now,
+    changeFrequency: "weekly",
+    priority: 0.9,
   }));
 
   const rateRoutes: MetadataRoute.Sitemap = LOAN_TYPES.map((t) => ({
@@ -52,5 +62,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     console.error("[sitemap] could not load posts:", err);
   }
 
-  return [...staticRoutes, ...calculatorRoutes, ...rateRoutes, ...postRoutes];
+  return [...staticRoutes, ...calculatorRoutes, ...schemeRoutes, ...rateRoutes, ...postRoutes];
 }

@@ -354,6 +354,7 @@ export function loanTypeByRateSlug(slug: string): LoanTypeConfig | undefined {
 
 export const PRIMARY_NAV = [
   { label: "Calculator", href: "/" },
+  { label: "Investments", href: "/investment-calculators" },
   { label: "Compare Banks", href: "/compare-loans" },
   { label: "Interest Rates", href: "/bank-interest-rates" },
   { label: "Guides", href: "/blog" },
