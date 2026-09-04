@@ -87,8 +87,9 @@ export const metadata: Metadata = {
       : undefined,
   },
   other: {
-    "geo.region": "IN",
-    "geo.placename": "India",
+    // No geo.region here any more: it declared the whole site as Indian, which
+    // was true when there was one market and is now wrong on every page that
+    // is not /in. Country targeting is expressed by hreflang instead.
     rating: "general",
   },
 };

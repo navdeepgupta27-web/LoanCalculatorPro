@@ -15,9 +15,9 @@ export const SITE = {
   legalName: "Loan Calculator Pro",
   domain: "loancalculatorpro.in",
   url: SITE_URL,
-  tagline: "India's most detailed loan EMI and investment calculators",
+  tagline: "Detailed loan EMI and investment calculators",
   description:
-    "Free loan EMI and investment calculators for India. Home, car, personal, business, education and gold loan EMIs with part-payment modelling and bank comparison, plus SIP, lumpsum, FD, RD, PPF, Sukanya Samriddhi, NPS and EPF calculators with CAGR, XIRR and absolute return. 100% private — everything runs in your browser.",
+    "Free loan EMI and investment calculators. Home, car, personal, business, education and gold loan EMIs with part-payment modelling and bank comparison, plus SIP, lumpsum, FD, RD, PPF, Sukanya Samriddhi, NPS and EPF calculators with CAGR, XIRR and absolute return. 100% private — everything runs in your browser.",
   locale: "en_IN",
   language: "en-IN",
   country: "IN",
@@ -280,7 +280,7 @@ export const LOAN_TYPES: LoanTypeConfig[] = [
     defaults: { amount: 500000, rate: 12.5, tenureYears: 5, procFee: 2 },
     ranges: { amount: [10000, 5000000, 5000], rate: [8, 36, 0.05], tenure: [1, 7, 1] },
     blurb:
-      "Personal loans carry the widest rate spread of any product in India. Compare offers properly — including the processing fee — before you sign.",
+      "Personal loans carry the widest rate spread of any retail product. Compare offers properly — including the processing fee — before you sign.",
     keywords: [
       "personal loan calculator",
       "personal loan interest rate",

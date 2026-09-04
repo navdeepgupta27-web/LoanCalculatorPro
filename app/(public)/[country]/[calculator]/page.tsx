@@ -72,7 +72,7 @@ export async function generateMetadata({ params }: Props) {
 
   return pageMetadata({
     title: `${type.label} EMI Calculator — Part Payment & Interest Savings`,
-    description: `Calculate your ${type.label.toLowerCase()} EMI with the reducing-balance method, model one-off and recurring part-payments, compare cutting the tenure against cutting the EMI, and download a full month-by-month amortisation schedule. Free, private, made for India.`,
+    description: `Calculate your ${type.label.toLowerCase()} EMI with the reducing-balance method, model one-off and recurring part-payments, compare cutting the tenure against cutting the EMI, and download a full month-by-month amortisation schedule. Free and private.`,
     path: countryHref(country, `/${type.slug}`),
     country,
     countryPath: `/${type.slug}`,
@@ -258,7 +258,7 @@ export default async function CalculatorPage({ params }: Props) {
         <SectionHeading
           align="left"
           title="A note on accuracy"
-          description={`This calculator applies the standard reducing-balance formula that Indian lenders use, and includes processing fee and GST in the total cost. It does not model late-payment penalties, insurance bundled into the loan, foreclosure charges, or any moratorium period. Your lender's sanction letter is the authoritative statement of your EMI and charges — treat these figures as a well-informed estimate for planning, not a quotation.`}
+          description={`${country.code === "in" ? "This calculator applies the standard reducing-balance formula that Indian lenders use, and includes processing fee and GST in the total cost." : "This calculator applies the standard reducing-balance formula, and includes any processing fee you enter in the total cost."} It does not model late-payment penalties, insurance bundled into the loan, foreclosure charges, or any moratorium period. Your lender's sanction letter is the authoritative statement of your EMI and charges — treat these figures as a well-informed estimate for planning, not a quotation.`}
         />
       </section>
     </>

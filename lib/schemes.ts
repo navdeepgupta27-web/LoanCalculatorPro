@@ -162,7 +162,7 @@ export const SCHEMES: SchemeConfig[] = [
     defaultRate: 7,
     defaultYears: 5,
     blurb:
-      "Maturity value of a cumulative fixed deposit, compounded quarterly as Indian banks do. The rate is fixed the day you open it and does not move.",
+      "Maturity value of a cumulative fixed deposit, compounded quarterly by default. The rate is fixed the day you open it and does not move.",
     keywords: [
       "FD calculator",
       "fixed deposit calculator",
