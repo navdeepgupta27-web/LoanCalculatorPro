@@ -113,6 +113,10 @@ export function websiteSchema() {
     "@id": `${SITE_URL}/#website`,
     url: SITE_URL,
     name: SITE.name,
+    // Google picks the name shown above a search result from this, og:site_name
+    // and the title, and prefers a short one. Offering the shorter form here
+    // makes "Loan Calc Pro" available instead of the bare domain.
+    alternateName: ["Loan Calc Pro", SITE.domain],
     description: SITE.description,
     inLanguage: SITE.language,
     publisher: { "@id": `${SITE_URL}/#organization` },
