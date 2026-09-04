@@ -181,6 +181,37 @@ export async function getRateCoverage(loanType?: LoanTypeId): Promise<RateCovera
 }
 
 /* ------------------------------------------------------------------ */
+/* Scheme rates (PPF, SSY, EPF …)                                      */
+/* ------------------------------------------------------------------ */
+
+export interface SchemeRate {
+  id: number;
+  scheme_id: string;
+  rate: number | null;
+  period_label: string | null;
+  source_url: string | null;
+  effective_date: string | null;
+  verified: number;
+  notes: string | null;
+  updated_at: string;
+}
+
+export async function getSchemeRates(): Promise<SchemeRate[]> {
+  return all<SchemeRate>(`SELECT * FROM scheme_rates ORDER BY scheme_id ASC`);
+}
+
+/**
+ * The stored rate for one scheme, or null when nothing has been recorded.
+ *
+ * Returns unverified rows too — the calculators use them as an editable
+ * default, clearly labelled, while the public rates table only presents a
+ * figure as confirmed once `verified` is set.
+ */
+export async function getSchemeRate(schemeId: string): Promise<SchemeRate | null> {
+  return one<SchemeRate>(`SELECT * FROM scheme_rates WHERE scheme_id = ?`, [schemeId]);
+}
+
+/* ------------------------------------------------------------------ */
 /* Feedback                                                            */
 /* ------------------------------------------------------------------ */
 
