@@ -17,6 +17,12 @@ interface AdSlotProps {
   /** The data-ad-slot id from your AdSense dashboard. */
   slot?: string;
   format?: AdFormat;
+  /**
+   * Set to "in-article" for the unit type of the same name. AdSense's in-feed
+   * units instead need a `layoutKey` generated for that specific unit — the two
+   * are not interchangeable.
+   */
+  layout?: "in-article";
   layoutKey?: string;
   className?: string;
   /** Reserve height so the ad does not shift content when it loads. */
@@ -39,6 +45,7 @@ interface AdSlotProps {
 export function AdSlot({
   slot,
   format = "auto",
+  layout,
   layoutKey,
   className,
   minHeight = 100,
@@ -91,6 +98,7 @@ export function AdSlot({
         data-ad-slot={slot}
         data-ad-format={format}
         data-full-width-responsive="true"
+        {...(layout ? { "data-ad-layout": layout } : {})}
         {...(layoutKey ? { "data-ad-layout-key": layoutKey } : {})}
       />
     </div>
@@ -112,12 +120,20 @@ export function AdLeaderboard({ className }: { className?: string }) {
   );
 }
 
+/**
+ * Sits inside a guide, below the article body.
+ *
+ * Marked up as an AdSense "In-article" unit. It previously carried a
+ * `data-ad-layout-key`, which belongs to In-feed units and is generated per
+ * unit — the one hardcoded here came from AdSense's own sample snippet and was
+ * never issued for this account, so it could not have rendered correctly.
+ */
 export function AdInArticle({ className }: { className?: string }) {
   return (
     <AdSlot
       slot={process.env.NEXT_PUBLIC_ADSENSE_SLOT_ARTICLE}
       format="fluid"
-      layoutKey="-fb+5w+4e-db+86"
+      layout="in-article"
       minHeight={200}
       className={className}
     />
