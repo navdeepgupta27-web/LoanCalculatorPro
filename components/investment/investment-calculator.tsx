@@ -12,7 +12,7 @@ import { Field, Input, Select } from "@/components/ui/field";
 import { Segmented } from "@/components/ui/segmented";
 import { SliderField } from "@/components/ui/slider-field";
 import { useToast } from "@/components/ui/toast";
-import { formatCompact, formatCurrency, formatPercent } from "@/lib/format";
+import { useFormat } from "@/components/country/country-provider";
 import {
   calculateAnnualScheme,
   calculateFd,
@@ -82,6 +82,8 @@ export function InvestmentCalculator({
   ratePeriod?: string | null;
   rateVerified?: boolean;
 }) {
+  const { symbol, compact: formatCompact, currency: formatCurrency, percent: formatPercent } = useFormat();
+
   const { toast } = useToast();
   const [state, setState] = useState<CalcState>(() => defaultsFor(scheme, storedRate));
   const [chartTab, setChartTab] = useState<"split" | "growth">("split");
@@ -251,7 +253,7 @@ export function InvestmentCalculator({
   const amountField = usesLumpsum ? (
     <SliderField
       label="Amount invested"
-      prefix="₹"
+      prefix={symbol}
       value={state.lumpsum}
       onChange={(lumpsum) => patch({ lumpsum })}
       min={1_000}
@@ -263,7 +265,7 @@ export function InvestmentCalculator({
   ) : usesYearly ? (
     <SliderField
       label="Yearly deposit"
-      prefix="₹"
+      prefix={symbol}
       value={state.yearly}
       onChange={(yearly) => patch({ yearly })}
       min={scheme.minPerYear ?? 500}
@@ -285,7 +287,7 @@ export function InvestmentCalculator({
   ) : (
     <SliderField
       label={scheme.id === "rd" ? "Monthly deposit" : "Monthly investment"}
-      prefix="₹"
+      prefix={symbol}
       value={state.monthly}
       onChange={(monthly) => patch({ monthly })}
       min={500}
@@ -324,7 +326,7 @@ export function InvestmentCalculator({
               <>
                 <SliderField
                   label="Monthly contribution"
-                  prefix="₹"
+                  prefix={symbol}
                   value={state.monthly}
                   onChange={(monthly) => patch({ monthly })}
                   min={500}

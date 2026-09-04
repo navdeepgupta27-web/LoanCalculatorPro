@@ -7,26 +7,36 @@ import { JsonLd } from "@/components/seo/json-ld";
 import { Reveal } from "@/components/ui/reveal";
 import { GENERAL_FAQS } from "@/lib/faqs";
 import { getVerifiedRates } from "@/lib/queries";
+import { countryHref, resolveCountry } from "@/lib/countries";
 import { breadcrumbSchema, faqSchema, pageMetadata } from "@/lib/seo";
 import type { LoanTypeId } from "@/lib/site";
 
-export const metadata = pageMetadata({
-  title: "Compare Bank Loans Side by Side — EMI, Fees & Total Cost",
-  description:
-    "Compare up to four loan offers at once. Enter each lender's rate, tenure and processing fee and see them ranked by total cost — not headline rate — with EMI, total interest, GST and payoff date side by side.",
-  path: "/compare-loans",
-  keywords: [
-    "compare bank loans",
-    "loan comparison calculator",
-    "compare home loan interest rates",
-    "compare EMI between banks",
-    "best bank for home loan India",
-    "loan comparison India side by side",
-    "which bank has lowest interest rate",
-    "total cost of loan comparison",
-    "processing fee comparison banks",
-  ],
-});
+type Props = { params: Promise<{ country: string }> };
+
+export async function generateMetadata({ params }: Props) {
+  const { country: code } = await params;
+  const country = resolveCountry(code);
+
+  return pageMetadata({
+    title: "Compare Bank Loans Side by Side — EMI, Fees & Total Cost",
+    description:
+      "Compare up to four loan offers at once. Enter each lender's rate, tenure and processing fee and see them ranked by total cost — not headline rate — with EMI, total interest, GST and payoff date side by side.",
+    path: countryHref(country, "/compare-loans"),
+    keywords: [
+      "compare bank loans",
+      "loan comparison calculator",
+      "compare home loan interest rates",
+      "compare EMI between banks",
+      "best bank for home loan India",
+      "loan comparison India side by side",
+      "which bank has lowest interest rate",
+      "total cost of loan comparison",
+      "processing fee comparison banks",
+    ],
+    country,
+    countryPath: "/compare-loans",
+  });
+}
 
 export const revalidate = 1800;
 
@@ -49,7 +59,11 @@ const COMPARE_FAQS = [
   ...GENERAL_FAQS.slice(3, 6),
 ];
 
-export default async function CompareLoansPage() {
+export default async function CompareLoansPage({ params }: Props) {
+  const { country: code } = await params;
+  const country = resolveCountry(code);
+  const href = (path: string) => countryHref(country, path);
+
   let rateOptions: RateOption[] = [];
   try {
     const rates = await getVerifiedRates();
@@ -70,8 +84,8 @@ export default async function CompareLoansPage() {
         data={[
           faqSchema(COMPARE_FAQS),
           breadcrumbSchema([
-            { name: "Home", path: "/" },
-            { name: "Compare Loans", path: "/compare-loans" },
+            { name: "Home", path: countryHref(country) },
+            { name: "Compare Loans", path: countryHref(country, "/compare-loans") },
           ]),
         ]}
       />
@@ -82,7 +96,7 @@ export default async function CompareLoansPage() {
           <nav aria-label="Breadcrumb" className="mb-5">
             <ol className="flex items-center gap-2 text-xs font-medium text-[var(--text-muted)]">
               <li>
-                <Link href="/" className="transition-colors hover:text-brand-600 dark:hover:text-brand-300">
+                <Link href={href("/")} className="transition-colors hover:text-brand-600 dark:hover:text-brand-300">
                   Home
                 </Link>
               </li>

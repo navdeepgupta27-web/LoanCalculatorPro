@@ -2,7 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 
-import { formatCompact, formatCurrency, formatNumber } from "@/lib/format";
+import { useFormat } from "@/components/country/country-provider";
+import type { Formatters } from "@/lib/format";
 
 type Formatter = "currency" | "compact" | "number" | "percent";
 
@@ -14,16 +15,23 @@ interface CountUpProps {
   className?: string;
 }
 
-function render(value: number, format: Formatter, decimals: number): string {
+/** Takes the formatters as an argument — it sits outside any component, so it
+ *  cannot reach the country context itself. */
+function render(
+  value: number,
+  format: Formatter,
+  decimals: number,
+  fmt: Formatters,
+): string {
   switch (format) {
     case "currency":
-      return formatCurrency(value, decimals);
+      return fmt.currency(value, decimals);
     case "compact":
-      return formatCompact(value);
+      return fmt.compact(value);
     case "percent":
       return `${value.toFixed(decimals)}%`;
     default:
-      return formatNumber(value);
+      return fmt.number(value);
   }
 }
 
@@ -41,6 +49,7 @@ export function CountUp({
   durationMs = 700,
   className,
 }: CountUpProps) {
+  const fmt = useFormat();
   const [display, setDisplay] = useState(value);
   const fromRef = useRef(value);
   const frameRef = useRef<number>(0);
@@ -95,7 +104,7 @@ export function CountUp({
 
   return (
     <span className={className} suppressHydrationWarning>
-      {render(display, format, decimals)}
+      {render(display, format, decimals, fmt)}
     </span>
   );
 }

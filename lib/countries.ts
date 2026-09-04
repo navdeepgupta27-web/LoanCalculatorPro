@@ -285,6 +285,18 @@ export function localeFor(country: Country): string {
   return `en-${country.code.toUpperCase()}`;
 }
 
+/**
+ * Prefixes a path with the country segment.
+ *
+ * Only for pages that exist once per country — the calculators, the comparison
+ * tools and the rate tables. The blog, FAQ and legal pages are shared across
+ * every market and keep their bare paths, so passing one of those through here
+ * would produce a URL that does not exist.
+ */
+export function countryHref(country: Country, path = "/"): string {
+  return path === "/" ? `/${country.code}` : `/${country.code}${path}`;
+}
+
 /** Countries grouped for the selector, curated markets pulled to the top. */
 export function groupedCountries() {
   const regions: Country["region"][] = ["Asia", "Europe", "Americas", "Africa", "Oceania"];

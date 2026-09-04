@@ -8,6 +8,7 @@ import { JsonLd } from "@/components/seo/json-ld";
 import { ButtonLink } from "@/components/ui/button";
 import { Reveal } from "@/components/ui/reveal";
 import { getRateCoverage, getRatesForLoanType, type RateCoverage } from "@/lib/queries";
+import { countryHref, resolveCountry } from "@/lib/countries";
 import { breadcrumbSchema, pageMetadata, rateTableSchema } from "@/lib/seo";
 import {
   bankRateKeywords,
@@ -17,24 +18,32 @@ import {
 } from "@/lib/site";
 import type { RateWithBank } from "@/lib/types";
 
-export const dynamicParams = false;
+/**
+ * On for the same reason as the calculator route: with a country segment above
+ * it, switching this off would 404 every country that is not prerendered. The
+ * notFound() below still rejects an unknown loan type.
+ */
+export const dynamicParams = true;
 export const revalidate = 3600;
 
 export function generateStaticParams() {
   return LOAN_TYPES.map((t) => ({ loanType: t.rateSlug }));
 }
 
-type Props = { params: Promise<{ loanType: string }> };
+type Props = { params: Promise<{ country: string; loanType: string }> };
 
 export async function generateMetadata({ params }: Props) {
-  const { loanType } = await params;
+  const { country: code, loanType } = await params;
+  const country = resolveCountry(code);
   const type = loanTypeByRateSlug(loanType);
   if (!type) return {};
 
   return pageMetadata({
     title: `${type.label} Interest Rates — All Banks Compared`,
     description: `Compare ${type.label.toLowerCase()} interest rates, processing fees and maximum tenures across Indian banks, housing finance companies and NBFCs. Each rate is dated and linked to the lender's own published page.`,
-    path: `/bank-interest-rates/${type.rateSlug}`,
+    path: countryHref(country, `/bank-interest-rates/${type.rateSlug}`),
+    country,
+    countryPath: `/bank-interest-rates/${type.rateSlug}`,
     keywords: [
       `${type.label.toLowerCase()} interest rate`,
       `${type.label.toLowerCase()} interest rate today`,
@@ -52,7 +61,9 @@ export async function generateMetadata({ params }: Props) {
 }
 
 export default async function LoanTypeRatesPage({ params }: Props) {
-  const { loanType } = await params;
+  const { country: code, loanType } = await params;
+  const country = resolveCountry(code);
+  const href = (path: string) => countryHref(country, path);
   const type = loanTypeByRateSlug(loanType);
   if (!type) notFound();
 
@@ -81,9 +92,9 @@ export default async function LoanTypeRatesPage({ params }: Props) {
         data={[
           rateTableSchema(type.label, rates.length, `/bank-interest-rates/${type.rateSlug}`),
           breadcrumbSchema([
-            { name: "Home", path: "/" },
-            { name: "Bank Interest Rates", path: "/bank-interest-rates" },
-            { name: `${type.label} Rates`, path: `/bank-interest-rates/${type.rateSlug}` },
+            { name: "Home", path: countryHref(country) },
+            { name: "Bank Interest Rates", path: countryHref(country, "/bank-interest-rates") },
+            { name: `${type.label} Rates`, path: countryHref(country, `/bank-interest-rates/${type.rateSlug}`) },
           ]),
         ]}
       />
@@ -94,14 +105,14 @@ export default async function LoanTypeRatesPage({ params }: Props) {
           <nav aria-label="Breadcrumb" className="mb-5">
             <ol className="flex flex-wrap items-center gap-2 text-xs font-medium text-[var(--text-muted)]">
               <li>
-                <Link href="/" className="transition-colors hover:text-brand-600 dark:hover:text-brand-300">
+                <Link href={href("/")} className="transition-colors hover:text-brand-600 dark:hover:text-brand-300">
                   Home
                 </Link>
               </li>
               <li aria-hidden="true">/</li>
               <li>
                 <Link
-                  href="/bank-interest-rates"
+                  href={href("/bank-interest-rates")}
                   className="transition-colors hover:text-brand-600 dark:hover:text-brand-300"
                 >
                   Bank Interest Rates
@@ -128,8 +139,8 @@ export default async function LoanTypeRatesPage({ params }: Props) {
             </Reveal>
             <Reveal delay={140}>
               <div className="mt-6 flex flex-wrap gap-3">
-                <ButtonLink href={`/${type.slug}`}>Calculate {type.label} EMI</ButtonLink>
-                <ButtonLink href="/compare-loans" variant="secondary">
+                <ButtonLink href={href(`/${type.slug}`)}>Calculate {type.label} EMI</ButtonLink>
+                <ButtonLink href={href("/compare-loans")} variant="secondary">
                   Compare lenders
                 </ButtonLink>
               </div>
@@ -140,7 +151,7 @@ export default async function LoanTypeRatesPage({ params }: Props) {
 
       <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
         <div className="mb-5">
-          <CoverageNotice coverage={coverage} />
+          <CoverageNotice coverage={coverage} country={country} />
         </div>
         <RatesTable rates={rates} />
       </section>
@@ -157,7 +168,7 @@ export default async function LoanTypeRatesPage({ params }: Props) {
           {LOAN_TYPES.filter((t) => t.id !== type.id).map((t) => (
             <Link
               key={t.id}
-              href={`/bank-interest-rates/${t.rateSlug}`}
+              href={href(`/bank-interest-rates/${t.rateSlug}`)}
               className="flex items-center gap-1.5 rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm font-semibold text-[var(--text-secondary)] transition-all duration-200 hover:-translate-y-0.5 hover:border-brand-400 hover:text-brand-600 dark:hover:text-brand-300"
             >
               <span>{t.emoji}</span>

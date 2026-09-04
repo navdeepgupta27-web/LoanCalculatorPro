@@ -19,6 +19,7 @@ import {
 import { SchemePage } from "@/components/investment/scheme-page";
 import { getSchemeRate } from "@/lib/queries";
 import { INVESTMENT_KEYWORDS, SCHEMES, schemeBySlug } from "@/lib/schemes";
+import { countryHref, resolveCountry } from "@/lib/countries";
 import { LOAN_TYPES, loanTypeBySlug } from "@/lib/site";
 
 /**
@@ -30,10 +31,13 @@ import { LOAN_TYPES, loanTypeBySlug } from "@/lib/site";
  * One dynamic segment serves both families: Next.js gives static routes
  * priority over a dynamic one, so /blog and /admin are unaffected.
  *
- * `dynamicParams = false` means anything outside the known slugs 404s instead
- * of rendering an empty calculator on an arbitrary URL.
+ * `dynamicParams` stays on because this route now has two dynamic segments.
+ * Turning it off would restrict the *country* to the prerendered set as well,
+ * which 404s every market outside the curated seven. An unknown calculator slug
+ * is still rejected — explicitly, by the notFound() below — and an unknown
+ * country by the layout above.
  */
-export const dynamicParams = false;
+export const dynamicParams = true;
 
 export function generateStaticParams() {
   return [
@@ -42,20 +46,23 @@ export function generateStaticParams() {
   ];
 }
 
-type Props = { params: Promise<{ calculator: string }> };
+type Props = { params: Promise<{ country: string; calculator: string }> };
 
 export async function generateMetadata({ params }: Props) {
-  const { calculator } = await params;
+  const { country: code, calculator } = await params;
+  const country = resolveCountry(code);
 
   const scheme = schemeBySlug(calculator);
-  if (scheme) {
+  if (scheme && !(scheme.indiaOnly && country.code !== "in")) {
     // CAGR is only meaningful for a single sum held throughout; anything with
     // staggered contributions reports XIRR, so the title must not promise CAGR.
     const metric = scheme.id === "lumpsum" || scheme.id === "fd" ? "CAGR" : "XIRR";
     return pageMetadata({
       title: `${scheme.name} — Returns, Maturity Value & ${scheme.rateIsStatutory ? "Current Rate" : metric}`,
       description: `${scheme.blurb} See maturity value, absolute return and ${metric}, with risk, lock-in and taxation stated alongside the number.`,
-      path: `/${scheme.slug}`,
+      path: countryHref(country, `/${scheme.slug}`),
+      country,
+      countryPath: `/${scheme.slug}`,
       keywords: [...scheme.keywords, ...INVESTMENT_KEYWORDS],
     });
   }
@@ -66,15 +73,23 @@ export async function generateMetadata({ params }: Props) {
   return pageMetadata({
     title: `${type.label} EMI Calculator — Part Payment & Interest Savings`,
     description: `Calculate your ${type.label.toLowerCase()} EMI with the reducing-balance method, model one-off and recurring part-payments, compare cutting the tenure against cutting the EMI, and download a full month-by-month amortisation schedule. Free, private, made for India.`,
-    path: `/${type.slug}`,
+    path: countryHref(country, `/${type.slug}`),
+    country,
+    countryPath: `/${type.slug}`,
     keywords: type.keywords,
   });
 }
 
 export default async function CalculatorPage({ params }: Props) {
-  const { calculator } = await params;
+  const { country: code, calculator } = await params;
+  const country = resolveCountry(code);
+  const href = (path: string) => countryHref(country, path);
 
   const scheme = schemeBySlug(calculator);
+  // PPF, Sukanya Samriddhi, NPS and EPF are Indian statutory schemes. Outside
+  // India they do not exist, so the URL 404s rather than rendering a
+  // calculator governed by rules that do not apply to the reader.
+  if (scheme?.indiaOnly && country.code !== "in") notFound();
   if (scheme) {
     const rate = await getSchemeRate(scheme.id).catch(() => null);
     return (
@@ -83,13 +98,13 @@ export default async function CalculatorPage({ params }: Props) {
           data={[
             softwareApplicationSchema(),
             breadcrumbSchema([
-              { name: "Home", path: "/" },
-              { name: "Investment Calculators", path: "/investment-calculators" },
-              { name: scheme.name, path: `/${scheme.slug}` },
+              { name: "Home", path: countryHref(country) },
+              { name: "Investment Calculators", path: countryHref(country, "/investment-calculators") },
+              { name: scheme.name, path: countryHref(country, `/${scheme.slug}`) },
             ]),
           ]}
         />
-        <SchemePage scheme={scheme} rate={rate} />
+        <SchemePage scheme={scheme} rate={rate} country={country} />
       </>
     );
   }
@@ -107,8 +122,8 @@ export default async function CalculatorPage({ params }: Props) {
           softwareApplicationSchema(),
           faqSchema(faqs),
           breadcrumbSchema([
-            { name: "Home", path: "/" },
-            { name: `${type.label} EMI Calculator`, path: `/${type.slug}` },
+            { name: "Home", path: countryHref(country) },
+            { name: `${type.label} EMI Calculator`, path: countryHref(country, `/${type.slug}`) },
           ]),
         ]}
       />
@@ -119,7 +134,7 @@ export default async function CalculatorPage({ params }: Props) {
           <nav aria-label="Breadcrumb" className="mb-5">
             <ol className="flex items-center gap-2 text-xs font-medium text-[var(--text-muted)]">
               <li>
-                <Link href="/" className="transition-colors hover:text-brand-600 dark:hover:text-brand-300">
+                <Link href={href("/")} className="transition-colors hover:text-brand-600 dark:hover:text-brand-300">
                   Home
                 </Link>
               </li>
@@ -181,7 +196,7 @@ export default async function CalculatorPage({ params }: Props) {
                   publishing for {type.label.toLowerCase()}s right now.
                 </p>
                 <ButtonLink
-                  href={`/bank-interest-rates/${type.rateSlug}`}
+                  href={href(`/bank-interest-rates/${type.rateSlug}`)}
                   variant="outline"
                   size="sm"
                   className="mt-4"
@@ -200,7 +215,7 @@ export default async function CalculatorPage({ params }: Props) {
                   Put both in the comparison tool. It ranks by total money out of pocket, so a low
                   rate hiding a large processing fee has nowhere to hide.
                 </p>
-                <ButtonLink href="/compare-loans" variant="outline" size="sm" className="mt-4">
+                <ButtonLink href={href("/compare-loans")} variant="outline" size="sm" className="mt-4">
                   Compare lenders
                 </ButtonLink>
               </div>

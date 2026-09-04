@@ -1,18 +1,23 @@
+"use client";
+
 import Link from "next/link";
 
-import { SCHEMES } from "@/lib/schemes";
+import { useCountryFromPath } from "@/components/country/country-provider";
+import { countryHref } from "@/lib/countries";
+import { schemesFor } from "@/lib/schemes";
 import { LEGAL_NAV, LOAN_TYPES, SITE } from "@/lib/site";
 
 import { Logo } from "./logo";
 import { SocialLinks } from "./social-icons";
 
+/** `perCountry` entries sit under the country prefix; the rest are shared. */
 const TOOLS = [
-  { label: "EMI Calculator", href: "/" },
-  { label: "Compare Bank Loans", href: "/compare-loans" },
-  { label: "Compare Investments", href: "/compare-investments" },
-  { label: "Bank Interest Rates", href: "/bank-interest-rates" },
-  { label: "Money Guides", href: "/blog" },
-  { label: "FAQ", href: "/faq" },
+  { label: "EMI Calculator", href: "/", perCountry: true },
+  { label: "Compare Bank Loans", href: "/compare-loans", perCountry: true },
+  { label: "Compare Investments", href: "/compare-investments", perCountry: true },
+  { label: "Bank Interest Rates", href: "/bank-interest-rates", perCountry: true },
+  { label: "Money Guides", href: "/blog", perCountry: false },
+  { label: "FAQ", href: "/faq", perCountry: false },
 ];
 
 /** Small tricolour flag — drawn inline so it renders identically everywhere. */
@@ -29,6 +34,8 @@ function IndiaFlag() {
 }
 
 export function Footer() {
+  const country = useCountryFromPath();
+  const href = (path: string) => countryHref(country, path);
   const year = new Date().getFullYear();
 
   return (
@@ -59,7 +66,7 @@ export function Footer() {
               {LOAN_TYPES.map((t) => (
                 <li key={t.id}>
                   <Link
-                    href={`/${t.slug}`}
+                    href={href(`/${t.slug}`)}
                     className="text-sm text-[var(--text-secondary)] transition-colors hover:text-brand-600 dark:hover:text-brand-300"
                   >
                     {t.label} EMI Calculator
@@ -74,10 +81,10 @@ export function Footer() {
               Investment Calculators
             </h2>
             <ul className="flex flex-col gap-2">
-              {SCHEMES.map((s) => (
+              {schemesFor(country.code).map((s) => (
                 <li key={s.id}>
                   <Link
-                    href={`/${s.slug}`}
+                    href={href(`/${s.slug}`)}
                     className="text-sm text-[var(--text-secondary)] transition-colors hover:text-brand-600 dark:hover:text-brand-300"
                   >
                     {s.name}
@@ -93,7 +100,7 @@ export function Footer() {
               {TOOLS.map((t) => (
                 <li key={t.href}>
                   <Link
-                    href={t.href}
+                    href={t.perCountry ? href(t.href) : t.href}
                     className="text-sm text-[var(--text-secondary)] transition-colors hover:text-brand-600 dark:hover:text-brand-300"
                   >
                     {t.label}

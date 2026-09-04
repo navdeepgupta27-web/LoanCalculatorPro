@@ -417,12 +417,19 @@ export const NAV_MENUS: NavMenu[] = [
   },
 ];
 
-/** Flat header items, shown after the two dropdowns. */
+/**
+ * Flat header items, shown after the two dropdowns.
+ *
+ * `perCountry` marks the ones that live under a country prefix. The guides and
+ * the FAQ are shared across every market and keep their bare paths — those are
+ * also the site's most valuable indexed URLs, and duplicating them per country
+ * would be thin content competing with itself.
+ */
 export const PRIMARY_NAV = [
-  { label: "Interest Rates", href: "/bank-interest-rates" },
-  { label: "Compare Banks", href: "/compare-loans" },
-  { label: "Guides", href: "/blog" },
-  { label: "FAQ", href: "/faq" },
+  { label: "Interest Rates", href: "/bank-interest-rates", perCountry: true },
+  { label: "Compare Banks", href: "/compare-loans", perCountry: true },
+  { label: "Guides", href: "/blog", perCountry: false },
+  { label: "FAQ", href: "/faq", perCountry: false },
 ] as const;
 
 export const LEGAL_NAV = [

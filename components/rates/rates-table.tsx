@@ -5,7 +5,7 @@ import { useMemo, useState } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { Input, Select } from "@/components/ui/field";
-import { formatCompact, formatDate, formatRate } from "@/lib/format";
+import { useFormat } from "@/components/country/country-provider";
 import { LOAN_TYPE_MAP, type LoanTypeId } from "@/lib/site";
 import type { BankCategory, RateWithBank } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -35,6 +35,8 @@ export function RatesTable({
   rates: RateWithBank[];
   showLoanType?: boolean;
 }) {
+  const { compact: formatCompact, date: formatDate, rate: formatRate } = useFormat();
+
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState<BankCategory | "all">("all");
   const [sort, setSort] = useState<SortKey>("rate");

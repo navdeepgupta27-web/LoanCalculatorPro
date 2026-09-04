@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 
 import { getPublishedPosts } from "@/lib/queries";
+import { CURATED_COUNTRIES } from "@/lib/countries";
 import { SCHEMES } from "@/lib/schemes";
 import { LOAN_TYPES, SITE_URL } from "@/lib/site";
 
@@ -10,12 +11,9 @@ export const revalidate = 3600;
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date();
 
+  // Shared pages, one copy for the whole site.
   const staticRoutes: MetadataRoute.Sitemap = [
     { url: SITE_URL, lastModified: now, changeFrequency: "daily", priority: 1 },
-    { url: `${SITE_URL}/compare-loans`, lastModified: now, changeFrequency: "weekly", priority: 0.9 },
-    { url: `${SITE_URL}/bank-interest-rates`, lastModified: now, changeFrequency: "daily", priority: 0.9 },
-    { url: `${SITE_URL}/investment-calculators`, lastModified: now, changeFrequency: "weekly", priority: 0.9 },
-    { url: `${SITE_URL}/compare-investments`, lastModified: now, changeFrequency: "weekly", priority: 0.85 },
     { url: `${SITE_URL}/blog`, lastModified: now, changeFrequency: "daily", priority: 0.8 },
     { url: `${SITE_URL}/faq`, lastModified: now, changeFrequency: "monthly", priority: 0.7 },
     { url: `${SITE_URL}/feedback`, lastModified: now, changeFrequency: "monthly", priority: 0.5 },
@@ -26,26 +24,43 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${SITE_URL}/disclaimer`, lastModified: now, changeFrequency: "yearly", priority: 0.3 },
   ];
 
-  const calculatorRoutes: MetadataRoute.Sitemap = LOAN_TYPES.map((t) => ({
-    url: `${SITE_URL}/${t.slug}`,
-    lastModified: now,
-    changeFrequency: "weekly",
-    priority: 0.95,
-  }));
-
-  const schemeRoutes: MetadataRoute.Sitemap = SCHEMES.map((s) => ({
-    url: `${SITE_URL}/${s.slug}`,
-    lastModified: now,
-    changeFrequency: "weekly",
-    priority: 0.9,
-  }));
-
-  const rateRoutes: MetadataRoute.Sitemap = LOAN_TYPES.map((t) => ({
-    url: `${SITE_URL}/bank-interest-rates/${t.rateSlug}`,
-    lastModified: now,
-    changeFrequency: "daily",
-    priority: 0.85,
-  }));
+  /**
+   * Per-country pages, listed only for the researched markets.
+   *
+   * Every country resolves and works, but 206 near-identical copies of each
+   * calculator differing only in currency is thin-content duplication. Those
+   * pages carry a noindex, so listing them here would be asking Google to
+   * crawl what it has been told to ignore.
+   */
+  const countryRoutes: MetadataRoute.Sitemap = CURATED_COUNTRIES.flatMap((c) => [
+    { url: `${SITE_URL}/${c.code}`, lastModified: now, changeFrequency: "daily" as const, priority: 1 },
+    ...LOAN_TYPES.map((t) => ({
+      url: `${SITE_URL}/${c.code}/${t.slug}`,
+      lastModified: now,
+      changeFrequency: "weekly" as const,
+      priority: 0.95,
+    })),
+    ...SCHEMES.map((s) => ({
+      url: `${SITE_URL}/${c.code}/${s.slug}`,
+      lastModified: now,
+      changeFrequency: "weekly" as const,
+      priority: 0.9,
+    })),
+    ...LOAN_TYPES.map((t) => ({
+      url: `${SITE_URL}/${c.code}/bank-interest-rates/${t.rateSlug}`,
+      lastModified: now,
+      changeFrequency: "daily" as const,
+      priority: 0.85,
+    })),
+    ...["compare-loans", "compare-investments", "investment-calculators", "bank-interest-rates"].map(
+      (path) => ({
+        url: `${SITE_URL}/${c.code}/${path}`,
+        lastModified: now,
+        changeFrequency: "weekly" as const,
+        priority: 0.9,
+      }),
+    ),
+  ]);
 
   // A database hiccup must not take the whole sitemap down — the static routes
   // are still worth serving.
@@ -62,5 +77,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     console.error("[sitemap] could not load posts:", err);
   }
 
-  return [...staticRoutes, ...calculatorRoutes, ...schemeRoutes, ...rateRoutes, ...postRoutes];
+  return [...staticRoutes, ...countryRoutes, ...postRoutes];
 }

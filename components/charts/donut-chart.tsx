@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 
-import { formatCurrency } from "@/lib/format";
+import { useFormat } from "@/components/country/country-provider";
 import { cn } from "@/lib/utils";
 
 export interface DonutSegment {
@@ -33,6 +33,8 @@ export function DonutChart({
   centerValue?: ReactNode;
   className?: string;
 }) {
+  const { currency: formatCurrency } = useFormat();
+
   const [mounted, setMounted] = useState(false);
   const [hovered, setHovered] = useState<number | null>(null);
 

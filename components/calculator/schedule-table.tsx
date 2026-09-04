@@ -3,7 +3,7 @@
 import { Fragment, useState } from "react";
 
 import { Segmented } from "@/components/ui/segmented";
-import { formatCurrency } from "@/lib/format";
+import { useFormat } from "@/components/country/country-provider";
 import type { LoanResult } from "@/lib/loan";
 import { cn } from "@/lib/utils";
 
@@ -20,6 +20,8 @@ const HEAD_CELL =
  * pages in chunks rather than rendering every row at once.
  */
 export function ScheduleTable({ result }: { result: LoanResult }) {
+  const { currency: formatCurrency } = useFormat();
+
   const [view, setView] = useState<View>("yearly");
   const [openYears, setOpenYears] = useState<Set<number>>(
     () => new Set(result.yearly[0] ? [result.yearly[0].year] : []),
