@@ -24,8 +24,16 @@ declare global {
   var __lcpDb: { client: Client; ready: Promise<void> } | undefined;
 }
 
+/**
+ * Turso's dashboard hands you TURSO_DATABASE_URL and TURSO_AUTH_TOKEN, so both
+ * spellings are accepted. DATABASE_URL wins when set, since it is the name
+ * used throughout the documentation here.
+ */
 function resolveUrl(): string {
-  const url = process.env.DATABASE_URL?.trim() || DEFAULT_LOCAL_URL;
+  const url =
+    process.env.DATABASE_URL?.trim() ||
+    process.env.TURSO_DATABASE_URL?.trim() ||
+    DEFAULT_LOCAL_URL;
   if (!url.startsWith("file:")) return url;
 
   // A file-backed database is a development convenience only; production runs
@@ -45,7 +53,10 @@ function resolveUrl(): string {
 
 function build(): { client: Client; ready: Promise<void> } {
   const url = resolveUrl();
-  const authToken = process.env.DATABASE_AUTH_TOKEN?.trim() || undefined;
+  const authToken =
+    process.env.DATABASE_AUTH_TOKEN?.trim() ||
+    process.env.TURSO_AUTH_TOKEN?.trim() ||
+    undefined;
 
   if (process.env.NODE_ENV === "production" && url.startsWith("file:") && process.env.VERCEL) {
     console.warn(
