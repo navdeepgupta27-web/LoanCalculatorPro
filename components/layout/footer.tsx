@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useCountryFromPath } from "@/components/country/country-provider";
 import { countryHref } from "@/lib/countries";
 import { schemesFor } from "@/lib/schemes";
-import { LEGAL_NAV, LOAN_TYPES, SITE } from "@/lib/site";
+import { LEGAL_NAV, loanTypesFor, SITE } from "@/lib/site";
 
 import { Logo } from "./logo";
 import { SocialLinks } from "./social-icons";
@@ -63,7 +63,7 @@ export function Footer() {
               Loan Calculators
             </h2>
             <ul className="flex flex-col gap-2">
-              {LOAN_TYPES.map((t) => (
+              {loanTypesFor(country.code).map((t) => (
                 <li key={t.id}>
                   <Link
                     href={href(`/${t.slug}`)}

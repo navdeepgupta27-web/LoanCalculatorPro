@@ -1,15 +1,26 @@
+import { AdminCountrySwitch } from "@/components/admin/country-switch";
 import { RatesEditor } from "@/components/admin/rates-editor";
 import { PageHeading } from "@/components/admin/widgets";
+import { DEFAULT_COUNTRY, resolveCountry } from "@/lib/countries";
 import { getBanks, getRates } from "@/lib/queries";
 
-export default async function AdminRatesPage() {
+export default async function AdminRatesPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ country?: string }>;
+}) {
+  const { country: requested } = await searchParams;
+  const country = resolveCountry(requested ?? DEFAULT_COUNTRY);
+
   const [banks, rates] = await Promise.all([
-    getBanks().catch(() => []),
-    getRates().catch(() => []),
+    getBanks(country.code).catch(() => []),
+    getRates(country.code).catch(() => []),
   ]);
 
   return (
     <>
+      <AdminCountrySwitch current={country.code} />
+
       <PageHeading
         title="Bank rates"
         description="Transcribe each lender's published rate, add the page you took it from, then tick Verified. Only verified rows show a figure on the public site."
@@ -26,7 +37,7 @@ export default async function AdminRatesPage() {
         </p>
       </div>
 
-      <RatesEditor banks={banks} rates={rates} />
+      <RatesEditor banks={banks} rates={rates} country={country.code} />
     </>
   );
 }

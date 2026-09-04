@@ -61,7 +61,8 @@ export const SCHEMA_STATEMENTS: string[] = [
 
   `CREATE TABLE IF NOT EXISTS banks (
      id          INTEGER PRIMARY KEY AUTOINCREMENT,
-     slug        TEXT    NOT NULL UNIQUE,
+     country     TEXT    NOT NULL DEFAULT 'in',
+     slug        TEXT    NOT NULL,
      name        TEXT    NOT NULL,
      short_name  TEXT    NOT NULL,
      category    TEXT    NOT NULL DEFAULT 'private',
@@ -70,10 +71,16 @@ export const SCHEMA_STATEMENTS: string[] = [
      sort_order  INTEGER NOT NULL DEFAULT 100,
      created_at  TEXT    NOT NULL DEFAULT (datetime('now'))
    )`,
+  /* A slug is unique within a country, not globally: HSBC is a real lender in
+     the UK, the UAE, Singapore and Canada, and all four are separate rows. */
+  `CREATE UNIQUE INDEX IF NOT EXISTS idx_banks_country_slug ON banks (country, slug)`,
+  `CREATE INDEX IF NOT EXISTS idx_banks_country ON banks (country, sort_order)`,
 
   `CREATE TABLE IF NOT EXISTS rates (
      id              INTEGER PRIMARY KEY AUTOINCREMENT,
      bank_id         INTEGER NOT NULL REFERENCES banks(id) ON DELETE CASCADE,
+     /* Denormalised from the bank so rate queries can filter without a join. */
+     country         TEXT    NOT NULL DEFAULT 'in',
      loan_type       TEXT    NOT NULL,
      min_rate        REAL,
      max_rate        REAL,
@@ -87,14 +94,15 @@ export const SCHEMA_STATEMENTS: string[] = [
      updated_at      TEXT    NOT NULL DEFAULT (datetime('now')),
      UNIQUE (bank_id, loan_type)
    )`,
-  `CREATE INDEX IF NOT EXISTS idx_rates_type ON rates (loan_type, verified)`,
+  `CREATE INDEX IF NOT EXISTS idx_rates_type ON rates (country, loan_type, verified)`,
 
   /* Government-set rates for PPF, Sukanya Samriddhi, EPF and the like.
      Kept out of the code because they are revised quarterly (small savings)
      or annually (EPF), and carry a source and date exactly like bank rates. */
   `CREATE TABLE IF NOT EXISTS scheme_rates (
      id             INTEGER PRIMARY KEY AUTOINCREMENT,
-     scheme_id      TEXT    NOT NULL UNIQUE,
+     country        TEXT    NOT NULL DEFAULT 'in',
+     scheme_id      TEXT    NOT NULL,
      rate           REAL,
      /* Free text, e.g. "Q2 FY 2026-27 (Jul-Sep 2026)". */
      period_label   TEXT,
@@ -104,7 +112,8 @@ export const SCHEMA_STATEMENTS: string[] = [
      notes          TEXT,
      updated_at     TEXT    NOT NULL DEFAULT (datetime('now'))
    )`,
-  `CREATE INDEX IF NOT EXISTS idx_scheme_rates_verified ON scheme_rates (verified)`,
+  `CREATE UNIQUE INDEX IF NOT EXISTS idx_scheme_rates_country_id ON scheme_rates (country, scheme_id)`,
+  `CREATE INDEX IF NOT EXISTS idx_scheme_rates_verified ON scheme_rates (country, verified)`,
 
   `CREATE TABLE IF NOT EXISTS settings (
      key        TEXT PRIMARY KEY,
@@ -119,4 +128,18 @@ export const SCHEMA_STATEMENTS: string[] = [
      created_at TEXT NOT NULL DEFAULT (datetime('now'))
    )`,
   `CREATE INDEX IF NOT EXISTS idx_login_ip ON login_attempts (ip_hash, created_at DESC)`,
+];
+
+/**
+ * Columns added after the first release.
+ *
+ * SQLite has no ADD COLUMN IF NOT EXISTS, and there is no migration-version
+ * table here, so these are applied on every cold start and the "duplicate
+ * column name" error is expected and ignored. Only ever append: a statement
+ * that drops or rewrites data does not belong in a list that re-runs.
+ */
+export const COLUMN_ADDITIONS: string[] = [
+  `ALTER TABLE banks ADD COLUMN country TEXT NOT NULL DEFAULT 'in'`,
+  `ALTER TABLE rates ADD COLUMN country TEXT NOT NULL DEFAULT 'in'`,
+  `ALTER TABLE scheme_rates ADD COLUMN country TEXT NOT NULL DEFAULT 'in'`,
 ];

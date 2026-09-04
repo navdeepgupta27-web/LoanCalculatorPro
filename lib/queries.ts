@@ -1,5 +1,6 @@
 import "server-only";
 
+import { DEFAULT_COUNTRY } from "./countries";
 import { all, one, run, scalar } from "./db";
 import type {
   ActivityRow,
@@ -68,7 +69,14 @@ const RATE_SELECT = `
     JOIN banks b ON b.id = r.bank_id
 `;
 
-export async function getRates(loanType?: LoanTypeId): Promise<RateWithBank[]> {
+/**
+ * Every rate query is scoped to one country.
+ *
+ * The parameter is required rather than defaulting to India: a caller that
+ * forgets it would silently show Indian lenders on a US page, which is worse
+ * than a compile error.
+ */
+export async function getRates(country: string, loanType?: LoanTypeId): Promise<RateWithBank[]> {
   // Anything the public table will not show a figure for — unverified, or with
   // no rate at all — sorts last, so an unchecked row can never head up a
   // "lowest rate first" list. Within each group: cheapest floor, then a stable
@@ -76,9 +84,12 @@ export async function getRates(loanType?: LoanTypeId): Promise<RateWithBank[]> {
   const order = `ORDER BY (r.verified = 0 OR r.min_rate IS NULL),
                           r.min_rate ASC, b.sort_order ASC, b.name ASC`;
   if (loanType) {
-    return all<RateWithBank>(`${RATE_SELECT} WHERE r.loan_type = ? ${order}`, [loanType]);
+    return all<RateWithBank>(
+      `${RATE_SELECT} WHERE b.country = ? AND r.loan_type = ? ${order}`,
+      [country, loanType],
+    );
   }
-  return all<RateWithBank>(`${RATE_SELECT} ${order}`);
+  return all<RateWithBank>(`${RATE_SELECT} WHERE b.country = ? ${order}`, [country]);
 }
 
 /**
@@ -89,7 +100,10 @@ export async function getRates(loanType?: LoanTypeId): Promise<RateWithBank[]> {
  * until someone fills it in. Lenders without a published rate render as
  * "Not published" and sort last.
  */
-export async function getRatesForLoanType(loanType: LoanTypeId): Promise<RateWithBank[]> {
+export async function getRatesForLoanType(
+  country: string,
+  loanType: LoanTypeId,
+): Promise<RateWithBank[]> {
   return all<RateWithBank>(
     `SELECT r.id                     AS id,
             b.id                     AS bank_id,
@@ -106,9 +120,10 @@ export async function getRatesForLoanType(loanType: LoanTypeId): Promise<RateWit
             b.website    AS bank_website
        FROM banks b
        LEFT JOIN rates r ON r.bank_id = b.id AND r.loan_type = ?
+      WHERE b.country = ?
       ORDER BY (COALESCE(r.verified, 0) = 0 OR r.min_rate IS NULL),
                r.min_rate ASC, b.sort_order ASC, b.name ASC`,
-    [loanType, loanType],
+    [loanType, loanType, country],
   );
 }
 
@@ -118,7 +133,7 @@ export interface LenderDirectoryRow extends Bank {
   published_types: string | null;
 }
 
-export async function getLenderDirectory(): Promise<LenderDirectoryRow[]> {
+export async function getLenderDirectory(country: string): Promise<LenderDirectoryRow[]> {
   return all<LenderDirectoryRow>(
     `SELECT b.*,
             (SELECT GROUP_CONCAT(r.loan_type)
@@ -126,22 +141,33 @@ export async function getLenderDirectory(): Promise<LenderDirectoryRow[]> {
               WHERE r.bank_id = b.id AND r.verified = 1 AND r.min_rate IS NOT NULL
             ) AS published_types
        FROM banks b
+      WHERE b.country = ?
       ORDER BY b.sort_order ASC, b.name ASC`,
+    [country],
   );
 }
 
 /** Only rows with a rate you have marked verified — what comparisons may use. */
-export async function getVerifiedRates(loanType?: LoanTypeId): Promise<RateWithBank[]> {
-  const where = `WHERE r.verified = 1 AND r.min_rate IS NOT NULL`;
+export async function getVerifiedRates(
+  country: string,
+  loanType?: LoanTypeId,
+): Promise<RateWithBank[]> {
+  const where = `WHERE b.country = ? AND r.verified = 1 AND r.min_rate IS NOT NULL`;
   const order = `ORDER BY r.min_rate ASC, b.name ASC`;
   if (loanType) {
-    return all<RateWithBank>(`${RATE_SELECT} ${where} AND r.loan_type = ? ${order}`, [loanType]);
+    return all<RateWithBank>(`${RATE_SELECT} ${where} AND r.loan_type = ? ${order}`, [
+      country,
+      loanType,
+    ]);
   }
-  return all<RateWithBank>(`${RATE_SELECT} ${where} ${order}`);
+  return all<RateWithBank>(`${RATE_SELECT} ${where} ${order}`, [country]);
 }
 
-export async function getBanks(): Promise<Bank[]> {
-  return all<Bank>(`SELECT * FROM banks ORDER BY sort_order ASC, name ASC`);
+export async function getBanks(country: string): Promise<Bank[]> {
+  return all<Bank>(
+    `SELECT * FROM banks WHERE country = ? ORDER BY sort_order ASC, name ASC`,
+    [country],
+  );
 }
 
 export interface RateCoverage {
@@ -154,9 +180,12 @@ export interface RateCoverage {
   lastUpdated: string | null;
 }
 
-export async function getRateCoverage(loanType?: LoanTypeId): Promise<RateCoverage> {
-  const filter = loanType ? `WHERE loan_type = ?` : ``;
-  const args = loanType ? [loanType] : [];
+export async function getRateCoverage(
+  country: string,
+  loanType?: LoanTypeId,
+): Promise<RateCoverage> {
+  const filter = loanType ? `WHERE country = ? AND loan_type = ?` : `WHERE country = ?`;
+  const args = loanType ? [country, loanType] : [country];
 
   const [row, lenders] = await Promise.all([
     one<{ total: number; verified: number; last_updated: string | null }>(
@@ -166,7 +195,7 @@ export async function getRateCoverage(loanType?: LoanTypeId): Promise<RateCovera
          FROM rates ${filter}`,
       args,
     ),
-    scalar<number>(`SELECT COUNT(*) FROM banks`, [], 0),
+    scalar<number>(`SELECT COUNT(*) FROM banks WHERE country = ?`, [country], 0),
   ]);
 
   const total = Number(row?.total ?? 0);
@@ -196,8 +225,11 @@ export interface SchemeRate {
   updated_at: string;
 }
 
-export async function getSchemeRates(): Promise<SchemeRate[]> {
-  return all<SchemeRate>(`SELECT * FROM scheme_rates ORDER BY scheme_id ASC`);
+export async function getSchemeRates(country: string): Promise<SchemeRate[]> {
+  return all<SchemeRate>(
+    `SELECT * FROM scheme_rates WHERE country = ? ORDER BY scheme_id ASC`,
+    [country],
+  );
 }
 
 /**
@@ -207,8 +239,11 @@ export async function getSchemeRates(): Promise<SchemeRate[]> {
  * default, clearly labelled, while the public rates table only presents a
  * figure as confirmed once `verified` is set.
  */
-export async function getSchemeRate(schemeId: string): Promise<SchemeRate | null> {
-  return one<SchemeRate>(`SELECT * FROM scheme_rates WHERE scheme_id = ?`, [schemeId]);
+export async function getSchemeRate(country: string, schemeId: string): Promise<SchemeRate | null> {
+  return one<SchemeRate>(
+    `SELECT * FROM scheme_rates WHERE country = ? AND scheme_id = ?`,
+    [country, schemeId],
+  );
 }
 
 /* ------------------------------------------------------------------ */
@@ -343,7 +378,9 @@ export async function getDashboardSummary() {
   const [feedback, activity, coverage, postCounts] = await Promise.all([
     getFeedbackStats(),
     getActivityStats(),
-    getRateCoverage(),
+    // The dashboard headline reports the primary market; per-country
+    // coverage is on the rates screen itself.
+    getRateCoverage(DEFAULT_COUNTRY),
     one<{ published: number; drafts: number; views: number }>(
       `SELECT SUM(CASE WHEN status='published' THEN 1 ELSE 0 END) AS published,
               SUM(CASE WHEN status='draft' THEN 1 ELSE 0 END)     AS drafts,

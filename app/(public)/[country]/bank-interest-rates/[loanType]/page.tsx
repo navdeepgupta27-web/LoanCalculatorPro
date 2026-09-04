@@ -10,12 +10,7 @@ import { Reveal } from "@/components/ui/reveal";
 import { getRateCoverage, getRatesForLoanType, type RateCoverage } from "@/lib/queries";
 import { countryHref, resolveCountry } from "@/lib/countries";
 import { breadcrumbSchema, pageMetadata, rateTableSchema } from "@/lib/seo";
-import {
-  bankRateKeywords,
-  LOAN_TYPES,
-  loanTypeByRateSlug,
-  RATE_KEYWORDS,
-} from "@/lib/site";
+import { LOAN_TYPES, RATE_KEYWORDS, bankRateKeywords, loanTypeAvailable, loanTypeByRateSlug } from "@/lib/site";
 import type { RateWithBank } from "@/lib/types";
 
 /**
@@ -65,7 +60,7 @@ export default async function LoanTypeRatesPage({ params }: Props) {
   const country = resolveCountry(code);
   const href = (path: string) => countryHref(country, path);
   const type = loanTypeByRateSlug(loanType);
-  if (!type) notFound();
+  if (!type || !loanTypeAvailable(country.code, type)) notFound();
 
   let rates: RateWithBank[] = [];
   let coverage: RateCoverage = {
@@ -79,8 +74,8 @@ export default async function LoanTypeRatesPage({ params }: Props) {
   try {
     // Every lender is listed, with or without a published rate for this type.
     [rates, coverage] = await Promise.all([
-      getRatesForLoanType(type.id),
-      getRateCoverage(type.id),
+      getRatesForLoanType(country.code, type.id),
+      getRateCoverage(country.code, type.id),
     ]);
   } catch {
     // Page shell still renders without the database.

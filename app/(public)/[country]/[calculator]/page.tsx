@@ -20,7 +20,7 @@ import { SchemePage } from "@/components/investment/scheme-page";
 import { getSchemeRate } from "@/lib/queries";
 import { INVESTMENT_KEYWORDS, SCHEMES, schemeBySlug } from "@/lib/schemes";
 import { countryHref, resolveCountry } from "@/lib/countries";
-import { LOAN_TYPES, loanTypeBySlug } from "@/lib/site";
+import { LOAN_TYPES, loanTypeAvailable, loanTypeBySlug } from "@/lib/site";
 
 /**
  * Every calculator landing page, served from the site root — so
@@ -91,7 +91,7 @@ export default async function CalculatorPage({ params }: Props) {
   // calculator governed by rules that do not apply to the reader.
   if (scheme?.indiaOnly && country.code !== "in") notFound();
   if (scheme) {
-    const rate = await getSchemeRate(scheme.id).catch(() => null);
+    const rate = await getSchemeRate(country.code, scheme.id).catch(() => null);
     return (
       <>
         <JsonLd
@@ -110,7 +110,9 @@ export default async function CalculatorPage({ params }: Props) {
   }
 
   const type = loanTypeBySlug(calculator);
-  if (!type) notFound();
+  // A product this market does not offer 404s rather than presenting a
+  // calculator for a loan nobody there can take out.
+  if (!type || !loanTypeAvailable(country.code, type)) notFound();
 
   const faqs = faqsFor(type.id);
   const others = LOAN_TYPES.filter((t) => t.id !== type.id);

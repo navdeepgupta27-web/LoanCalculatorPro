@@ -66,7 +66,7 @@ export default async function CompareLoansPage({ params }: Props) {
 
   let rateOptions: RateOption[] = [];
   try {
-    const rates = await getVerifiedRates();
+    const rates = await getVerifiedRates(country.code);
     rateOptions = rates.map((r) => ({
       bankName: r.bank_name,
       loanType: r.loan_type as LoanTypeId,

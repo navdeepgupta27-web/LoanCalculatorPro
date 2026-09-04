@@ -49,7 +49,7 @@ export default async function InvestmentCalculatorsPage({ params }: Props) {
 
   let rates: SchemeRate[] = [];
   try {
-    rates = await getSchemeRates();
+    rates = await getSchemeRates(country.code);
   } catch {
     // The hub renders fine without stored rates.
   }

@@ -63,7 +63,7 @@ export default async function BankRatesPage({ params }: Props) {
   };
 
   try {
-    const [directory, cov] = await Promise.all([getLenderDirectory(), getRateCoverage()]);
+    const [directory, cov] = await Promise.all([getLenderDirectory(country.code), getRateCoverage(country.code)]);
     coverage = cov;
     lenders = directory.map((b) => ({
       id: b.id,

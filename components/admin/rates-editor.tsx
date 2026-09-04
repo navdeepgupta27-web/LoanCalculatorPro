@@ -36,7 +36,15 @@ function draftFrom(rate: RateWithBank | undefined): Draft {
   };
 }
 
-export function RatesEditor({ banks, rates }: { banks: Bank[]; rates: RateWithBank[] }) {
+export function RatesEditor({
+  banks,
+  rates,
+  country,
+}: {
+  banks: Bank[];
+  rates: RateWithBank[];
+  country: string;
+}) {
   const router = useRouter();
   const { toast } = useToast();
 
@@ -71,6 +79,7 @@ export function RatesEditor({ banks, rates }: { banks: Bank[]; rates: RateWithBa
         method: "PUT",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
+          country,
           bankId: bank.id,
           loanType,
           minRate: d.minRate ? Number(d.minRate) : null,
@@ -111,7 +120,7 @@ export function RatesEditor({ banks, rates }: { banks: Bank[]; rates: RateWithBa
       const res = await fetch("/api/admin/rates/import", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ csv }),
+        body: JSON.stringify({ csv, country }),
       });
       const json = await res.json();
 

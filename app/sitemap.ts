@@ -2,8 +2,8 @@ import type { MetadataRoute } from "next";
 
 import { getPublishedPosts } from "@/lib/queries";
 import { CURATED_COUNTRIES } from "@/lib/countries";
-import { SCHEMES } from "@/lib/schemes";
-import { LOAN_TYPES, SITE_URL } from "@/lib/site";
+import { schemesFor } from "@/lib/schemes";
+import { loanTypesFor, SITE_URL } from "@/lib/site";
 
 // Re-generated hourly so a newly published post appears without a redeploy.
 export const revalidate = 3600;
@@ -34,19 +34,19 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
    */
   const countryRoutes: MetadataRoute.Sitemap = CURATED_COUNTRIES.flatMap((c) => [
     { url: `${SITE_URL}/${c.code}`, lastModified: now, changeFrequency: "daily" as const, priority: 1 },
-    ...LOAN_TYPES.map((t) => ({
+    ...loanTypesFor(c.code).map((t) => ({
       url: `${SITE_URL}/${c.code}/${t.slug}`,
       lastModified: now,
       changeFrequency: "weekly" as const,
       priority: 0.95,
     })),
-    ...SCHEMES.map((s) => ({
+    ...schemesFor(c.code).map((s) => ({
       url: `${SITE_URL}/${c.code}/${s.slug}`,
       lastModified: now,
       changeFrequency: "weekly" as const,
       priority: 0.9,
     })),
-    ...LOAN_TYPES.map((t) => ({
+    ...loanTypesFor(c.code).map((t) => ({
       url: `${SITE_URL}/${c.code}/bank-interest-rates/${t.rateSlug}`,
       lastModified: now,
       changeFrequency: "daily" as const,

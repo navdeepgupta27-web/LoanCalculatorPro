@@ -3,7 +3,7 @@ import Link from "next/link";
 import { Reveal } from "@/components/ui/reveal";
 import { createFormatters } from "@/lib/format";
 import { countryHref, type Country } from "@/lib/countries";
-import { LOAN_TYPES } from "@/lib/site";
+import { loanTypesFor } from "@/lib/site";
 import { cn } from "@/lib/utils";
 
 export function LoanTypeGrid({
@@ -17,7 +17,7 @@ export function LoanTypeGrid({
 
   return (
     <div className={cn("grid gap-4 sm:grid-cols-2 lg:grid-cols-3", className)}>
-      {LOAN_TYPES.map((t, i) => (
+      {loanTypesFor(country.code).map((t, i) => (
         <Reveal key={t.id} delay={i * 60}>
           <Link
             href={countryHref(country, `/${t.slug}`)}

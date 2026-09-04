@@ -8,6 +8,7 @@ import { CountrySelector } from "@/components/country/country-selector";
 import { useCountryFromPath } from "@/components/country/country-provider";
 import { countryHref } from "@/lib/countries";
 import { INDIA_ONLY_SLUGS } from "@/lib/schemes";
+import { LOAN_TYPES } from "@/lib/site";
 import { NAV_MENUS, PRIMARY_NAV } from "@/lib/site";
 import { cn } from "@/lib/utils";
 
@@ -22,10 +23,17 @@ export function Header() {
   const href = (path: string) => countryHref(country, path);
   // The Indian statutory schemes 404 outside India, so they must not be offered
   // in the menu there either.
+  const unavailable = new Set(
+    LOAN_TYPES.filter((t) => t.availableIn && !t.availableIn.includes(country.code)).map(
+      (t) => t.slug,
+    ),
+  );
   const menuItems = <T extends { href: string }>(items: readonly T[]) =>
-    country.code === "in"
-      ? [...items]
-      : items.filter((i) => !INDIA_ONLY_SLUGS.has(i.href.replace(/^\//, "")));
+    items.filter((i) => {
+      const slug = i.href.replace(/^\//, "");
+      if (unavailable.has(slug)) return false;
+      return country.code === "in" || !INDIA_ONLY_SLUGS.has(slug);
+    });
 
   const [scrolled, setScrolled] = useState(false);
   // Which dropdown is open, by its label — only one at a time.

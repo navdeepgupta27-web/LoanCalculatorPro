@@ -74,7 +74,7 @@ export default async function CompareInvestmentsPage({ params }: Props) {
 
   let storedRates: Record<string, number | null> = {};
   try {
-    const rates = await getSchemeRates();
+    const rates = await getSchemeRates(country.code);
     storedRates = Object.fromEntries(rates.map((r) => [r.scheme_id, r.rate]));
   } catch {
     // Falls back to each scheme's default rate.

@@ -72,10 +72,27 @@ export function pageMetadata({
 
   const keepOut = noIndex || (country !== undefined && !country.curated);
 
+  /**
+   * The keyword sets were written for an India-only site: they name Indian
+   * lenders, use lakh and crore, and append "India" to head terms. Emitting
+   * them on a US or UK page targets the wrong market and reads as keyword
+   * stuffing, so they are filtered out everywhere except India.
+   *
+   * A filter rather than a second hand-maintained list, because the terms that
+   * travel — "EMI calculator", "SIP calculator", "compare loans" — are the
+   * majority, and duplicating them would leave two lists to drift apart.
+   */
+  const INDIA_SPECIFIC =
+    /\bindia(n)?\b|\blakh\b|\bcrore\b|\bRBI\b|\bNBFC\b|\bGST\b|\bSBI\b|HDFC|ICICI|Axis Bank|Kotak|Punjab National|Bank of Baroda|Canara|IndusInd|IDFC|Bajaj|LIC |Tata Capital|Federal Bank|Union Bank|EPFO|Sukanya|PPF|NPS|EPF\b/i;
+
+  const pool = Array.from(new Set([...keywords, ...ALL_KEYWORDS]));
+  const scopedKeywords =
+    country && country.code !== "in" ? pool.filter((k) => !INDIA_SPECIFIC.test(k)) : pool;
+
   return {
     title,
     description,
-    keywords: Array.from(new Set([...keywords, ...ALL_KEYWORDS])).slice(0, 60),
+    keywords: scopedKeywords.slice(0, 60),
     alternates: { canonical: url, ...(languages ? { languages } : {}) },
     robots: keepOut
       ? { index: false, follow: true, nocache: true }

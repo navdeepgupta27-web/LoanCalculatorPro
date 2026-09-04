@@ -175,7 +175,19 @@ export function SchemePage({
 
       <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
         <InvestmentCalculator
-          scheme={scheme}
+          scheme={
+            // The Indian tax and guarantee wording is stripped before the
+            // config crosses to the client. Nothing rendered it outside India,
+            // but it was travelling in the serialised payload of every
+            // country's page and showing up in the HTML source.
+            inIndia
+              ? scheme
+              : {
+                  ...scheme,
+                  taxation: "",
+                  guarantee: scheme.guaranteeUniversal ?? scheme.guarantee,
+                }
+          }
           storedRate={storedRate}
           rateSourceUrl={rate?.source_url}
           ratePeriod={rate?.period_label}

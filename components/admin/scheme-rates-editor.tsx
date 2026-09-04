@@ -32,7 +32,13 @@ function draftFrom(row: SchemeRate | undefined): Draft {
   };
 }
 
-export function SchemeRatesEditor({ rates }: { rates: SchemeRate[] }) {
+export function SchemeRatesEditor({
+  rates,
+  country,
+}: {
+  rates: SchemeRate[];
+  country: string;
+}) {
   const router = useRouter();
   const { toast } = useToast();
 
@@ -53,6 +59,7 @@ export function SchemeRatesEditor({ rates }: { rates: SchemeRate[] }) {
         method: "PUT",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
+          country,
           schemeId: scheme.id,
           rate: d.rate ? Number(d.rate) : null,
           periodLabel: d.periodLabel || null,

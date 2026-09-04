@@ -3,7 +3,8 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { isResponse, requireAdminApi } from "@/lib/auth";
-import { run } from "@/lib/db";
+import { one, run } from "@/lib/db";
+import { CURATED_COUNTRIES, DEFAULT_COUNTRY } from "@/lib/countries";
 import { LOAN_TYPE_MAP, type LoanTypeId } from "@/lib/site";
 
 export const dynamic = "force-dynamic";
@@ -13,16 +14,17 @@ export const dynamic = "force-dynamic";
  * without this an edit sits invisible until the window expires. Called after
  * every write so a rate you just published shows up immediately.
  */
-function refreshRatePages(loanType?: LoanTypeId) {
-  revalidatePath("/bank-interest-rates");
+function refreshRatePages(country: string, loanType?: LoanTypeId) {
+  // Every path carries the country segment now that these pages live under it.
+  revalidatePath(`/${country}/bank-interest-rates`);
   // The comparison tool prefills from verified rates.
-  revalidatePath("/compare-loans");
+  revalidatePath(`/${country}/compare-loans`);
 
   if (loanType) {
-    revalidatePath(`/bank-interest-rates/${LOAN_TYPE_MAP[loanType].rateSlug}`);
+    revalidatePath(`/${country}/bank-interest-rates/${LOAN_TYPE_MAP[loanType].rateSlug}`);
   } else {
     for (const type of Object.values(LOAN_TYPE_MAP)) {
-      revalidatePath(`/bank-interest-rates/${type.rateSlug}`);
+      revalidatePath(`/${country}/bank-interest-rates/${type.rateSlug}`);
     }
   }
 }
@@ -31,6 +33,8 @@ const nullableNumber = z.union([z.number(), z.null()]).optional();
 const nullableString = z.union([z.string().max(500), z.null()]).optional();
 
 const UpsertSchema = z.object({
+  country: z.string().refine((c) => CURATED_COUNTRIES.some((x) => x.code === c),
+    "Rates can only be recorded for a market we have set up."),
   bankId: z.number().int().positive(),
   loanType: z.enum(["home", "car", "personal", "business", "education", "gold"]),
   minRate: nullableNumber,
@@ -75,9 +79,9 @@ export async function PUT(request: Request) {
   try {
     await run(
       `INSERT INTO rates
-         (bank_id, loan_type, min_rate, max_rate, processing_fee, max_tenure_years,
+         (bank_id, country, loan_type, min_rate, max_rate, processing_fee, max_tenure_years,
           max_amount, source_url, effective_date, verified, notes, updated_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
        ON CONFLICT (bank_id, loan_type) DO UPDATE SET
          min_rate         = excluded.min_rate,
          max_rate         = excluded.max_rate,
@@ -91,6 +95,7 @@ export async function PUT(request: Request) {
          updated_at       = datetime('now')`,
       [
         d.bankId,
+        d.country,
         d.loanType,
         d.minRate ?? null,
         d.maxRate ?? null,
@@ -104,7 +109,7 @@ export async function PUT(request: Request) {
       ],
     );
 
-    refreshRatePages(d.loanType);
+    refreshRatePages(d.country, d.loanType);
     return NextResponse.json({ ok: true });
   } catch (err) {
     console.error("[admin/rates] upsert failed:", err);
@@ -125,8 +130,11 @@ export async function DELETE(request: Request) {
   }
 
   try {
+    const row = await one<{ country: string }>(`SELECT country FROM rates WHERE id = ?`, [
+      parsed.data.id,
+    ]);
     await run(`DELETE FROM rates WHERE id = ?`, [parsed.data.id]);
-    refreshRatePages();
+    refreshRatePages(row?.country ?? DEFAULT_COUNTRY);
     return NextResponse.json({ ok: true });
   } catch (err) {
     console.error("[admin/rates] delete failed:", err);
