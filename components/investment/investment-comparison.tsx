@@ -7,7 +7,7 @@ import { BalanceChart, type ChartSeries } from "@/components/charts/balance-char
 import { Badge } from "@/components/ui/badge";
 import { Segmented } from "@/components/ui/segmented";
 import { SliderField } from "@/components/ui/slider-field";
-import { formatCompact, formatCurrency, formatPercent } from "@/lib/format";
+import { useFormat } from "@/components/country/country-provider";
 import {
   calculateAnnualScheme,
   calculateFd,
@@ -44,6 +44,8 @@ export function InvestmentComparison({
 }: {
   storedRates: Record<string, number | null>;
 }) {
+  const { symbol, compact: formatCompact, currency: formatCurrency, percent: formatPercent } = useFormat();
+
   const [mode, setMode] = useState<"monthly" | "lumpsum">("monthly");
   const [monthly, setMonthly] = useState(10_000);
   const [lumpsum, setLumpsum] = useState(500_000);
@@ -168,7 +170,7 @@ export function InvestmentComparison({
           {mode === "monthly" ? (
             <SliderField
               label="Monthly amount"
-              prefix="₹"
+              prefix={symbol}
               value={monthly}
               onChange={setMonthly}
               min={500}
@@ -180,7 +182,7 @@ export function InvestmentComparison({
           ) : (
             <SliderField
               label="Amount invested"
-              prefix="₹"
+              prefix={symbol}
               value={lumpsum}
               onChange={setLumpsum}
               min={10_000}

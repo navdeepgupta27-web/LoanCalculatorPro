@@ -4,7 +4,7 @@ import { useState } from "react";
 
 import { Field, Input, Select } from "@/components/ui/field";
 import { Segmented } from "@/components/ui/segmented";
-import { formatCompact } from "@/lib/format";
+import { useFormat } from "@/components/country/country-provider";
 import type { Prepayment, PrepaymentMode, RecurringFrequency, RecurringPrepayment } from "@/lib/loan";
 import { cn } from "@/lib/utils";
 
@@ -35,6 +35,8 @@ export function PrepaymentPanel({
   onModeChange,
   maxMonths,
 }: PrepaymentPanelProps) {
+  const { symbol, compact: formatCompact } = useFormat();
+
   const [open, setOpen] = useState(false);
   const active = prepayments.length > 0 || !!recurring;
 
@@ -136,7 +138,7 @@ export function PrepaymentPanel({
                     <Input
                       type="text"
                       inputMode="numeric"
-                      prefix="₹"
+                      prefix={symbol}
                       value={p.amount || ""}
                       onChange={(e) =>
                         updatePrepayment(i, { amount: Number(e.target.value.replace(/[^0-9]/g, "")) || 0 })
@@ -207,7 +209,7 @@ export function PrepaymentPanel({
                     <Input
                       type="text"
                       inputMode="numeric"
-                      prefix="₹"
+                      prefix={symbol}
                       value={recurring.amount || ""}
                       onChange={(e) =>
                         onRecurringChange({

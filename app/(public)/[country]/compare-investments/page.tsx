@@ -6,26 +6,36 @@ import { FaqSection } from "@/components/sections/faq-section";
 import { JsonLd } from "@/components/seo/json-ld";
 import { Reveal } from "@/components/ui/reveal";
 import { getSchemeRates } from "@/lib/queries";
-import { INVESTMENT_KEYWORDS, SCHEMES } from "@/lib/schemes";
+import { INVESTMENT_KEYWORDS, schemesFor } from "@/lib/schemes";
+import { countryHref, resolveCountry } from "@/lib/countries";
 import { breadcrumbSchema, faqSchema, pageMetadata } from "@/lib/seo";
 
-export const metadata = pageMetadata({
-  title: "Compare Investments — SIP vs PPF vs FD vs RD Side by Side",
-  description:
-    "Put SIP, PPF, Sukanya Samriddhi, FD, RD and lumpsum side by side on the same contribution and period. Maturity value, absolute return and XIRR shown alongside risk, lock-in and tax treatment — so you can judge, rather than be told.",
-  path: "/compare-investments",
-  keywords: [
-    "compare investments India",
-    "SIP vs FD",
-    "PPF vs SIP",
-    "SIP vs PPF vs FD",
-    "FD vs RD comparison",
-    "best investment option India comparison",
-    "where to invest my money India",
-    "guaranteed vs market linked returns",
-    ...INVESTMENT_KEYWORDS,
-  ],
-});
+type Props = { params: Promise<{ country: string }> };
+
+export async function generateMetadata({ params }: Props) {
+  const { country: code } = await params;
+  const country = resolveCountry(code);
+
+  return pageMetadata({
+    title: "Compare Investments — SIP vs PPF vs FD vs RD Side by Side",
+    description:
+      "Put SIP, PPF, Sukanya Samriddhi, FD, RD and lumpsum side by side on the same contribution and period. Maturity value, absolute return and XIRR shown alongside risk, lock-in and tax treatment — so you can judge, rather than be told.",
+    path: countryHref(country, "/compare-investments"),
+    keywords: [
+      "compare investments India",
+      "SIP vs FD",
+      "PPF vs SIP",
+      "SIP vs PPF vs FD",
+      "FD vs RD comparison",
+      "best investment option India comparison",
+      "where to invest my money India",
+      "guaranteed vs market linked returns",
+      ...INVESTMENT_KEYWORDS,
+    ],
+    country,
+    countryPath: "/compare-investments",
+  });
+}
 
 export const revalidate = 3600;
 
@@ -57,10 +67,14 @@ const COMPARE_FAQS = [
   },
 ];
 
-export default async function CompareInvestmentsPage() {
+export default async function CompareInvestmentsPage({ params }: Props) {
+  const { country: code } = await params;
+  const country = resolveCountry(code);
+  const href = (path: string) => countryHref(country, path);
+
   let storedRates: Record<string, number | null> = {};
   try {
-    const rates = await getSchemeRates();
+    const rates = await getSchemeRates(country.code);
     storedRates = Object.fromEntries(rates.map((r) => [r.scheme_id, r.rate]));
   } catch {
     // Falls back to each scheme's default rate.
@@ -72,9 +86,9 @@ export default async function CompareInvestmentsPage() {
         data={[
           faqSchema(COMPARE_FAQS),
           breadcrumbSchema([
-            { name: "Home", path: "/" },
-            { name: "Investment Calculators", path: "/investment-calculators" },
-            { name: "Compare Investments", path: "/compare-investments" },
+            { name: "Home", path: countryHref(country) },
+            { name: "Investment Calculators", path: countryHref(country, "/investment-calculators") },
+            { name: "Compare Investments", path: countryHref(country, "/compare-investments") },
           ]),
         ]}
       />
@@ -85,14 +99,14 @@ export default async function CompareInvestmentsPage() {
           <nav aria-label="Breadcrumb" className="mb-5">
             <ol className="flex flex-wrap items-center gap-2 text-xs font-medium text-[var(--text-muted)]">
               <li>
-                <Link href="/" className="transition-colors hover:text-brand-600 dark:hover:text-brand-300">
+                <Link href={href("/")} className="transition-colors hover:text-brand-600 dark:hover:text-brand-300">
                   Home
                 </Link>
               </li>
               <li aria-hidden="true">/</li>
               <li>
                 <Link
-                  href="/investment-calculators"
+                  href={href("/investment-calculators")}
                   className="transition-colors hover:text-brand-600 dark:hover:text-brand-300"
                 >
                   Investment Calculators
@@ -143,10 +157,10 @@ export default async function CompareInvestmentsPage() {
           Work through one in detail
         </h2>
         <div className="flex flex-wrap gap-2">
-          {SCHEMES.map((s) => (
+          {schemesFor(country.code).map((s) => (
             <Link
               key={s.id}
-              href={`/${s.slug}`}
+              href={href(`/${s.slug}`)}
               className="flex items-center gap-1.5 rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm font-semibold text-[var(--text-secondary)] transition-all duration-200 hover:-translate-y-0.5 hover:border-brand-400 hover:text-brand-600 dark:hover:text-brand-300"
             >
               <span>{s.emoji}</span>

@@ -5,7 +5,7 @@ import { createHash } from "node:crypto";
 import { mkdirSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 
-import { SCHEMA_STATEMENTS } from "./schema";
+import { COLUMN_ADDITIONS, SCHEMA_STATEMENTS } from "./schema";
 
 /**
  * SQLite access layer.
@@ -67,7 +67,31 @@ function build(): { client: Client; ready: Promise<void> } {
 
   const client = createClient({ url, authToken });
   const ready = (async () => {
-    for (const stmt of SCHEMA_STATEMENTS) {
+    // Order matters. CREATE TABLE IF NOT EXISTS does nothing to a table that
+    // already exists, so a column added in a later release only arrives via
+    // ALTER — and an index over that column has to come after the ALTER, not
+    // before it. Tables, then columns, then indexes.
+    const isIndex = (s: string) => /^\s*CREATE\s+(UNIQUE\s+)?INDEX/i.test(s);
+
+    for (const stmt of SCHEMA_STATEMENTS.filter((s) => !isIndex(s))) {
+      await client.execute(stmt);
+    }
+
+    // SQLite has no ADD COLUMN IF NOT EXISTS, so "duplicate column name" is the
+    // expected outcome on every start after the first and is swallowed.
+    // Anything else is a real problem and is surfaced.
+    for (const stmt of COLUMN_ADDITIONS) {
+      try {
+        await client.execute(stmt);
+      } catch (error) {
+        const message = String((error as Error)?.message ?? error).toLowerCase();
+        if (!message.includes("duplicate column")) {
+          console.error("[db] column addition failed:", stmt, error);
+        }
+      }
+    }
+
+    for (const stmt of SCHEMA_STATEMENTS.filter(isIndex)) {
       await client.execute(stmt);
     }
   })();

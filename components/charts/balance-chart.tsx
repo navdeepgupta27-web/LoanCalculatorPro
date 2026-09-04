@@ -2,7 +2,7 @@
 
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 
-import { formatCompact, formatCurrency } from "@/lib/format";
+import { useFormat } from "@/components/country/country-provider";
 import { cn } from "@/lib/utils";
 
 export interface ChartPoint {
@@ -32,7 +32,7 @@ const PAD = { top: 16, right: 14, bottom: 30, left: 56 };
 export function BalanceChart({
   series,
   height = 260,
-  yFormatter = formatCompact,
+  yFormatter,
   className,
 }: {
   series: ChartSeries[];
@@ -40,6 +40,11 @@ export function BalanceChart({
   yFormatter?: (v: number) => string;
   className?: string;
 }) {
+  const { compact: formatCompact, currency: formatCurrency } = useFormat();
+  // Resolved here rather than as a default parameter: the formatter depends on
+  // the country, which is only available once the hook has run.
+  const formatY = yFormatter ?? formatCompact;
+
   const uid = useId().replace(/:/g, "");
   const wrapRef = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState(720);
@@ -173,7 +178,7 @@ export function BalanceChart({
               className="fill-[var(--text-muted)] text-[10px] font-medium"
               style={{ fontVariantNumeric: "tabular-nums" }}
             >
-              {yFormatter(t)}
+              {formatY(t)}
             </text>
           </g>
         ))}

@@ -3,7 +3,7 @@
 import type { ReactNode } from "react";
 
 import { CountUp } from "@/components/ui/count-up";
-import { formatTenure } from "@/lib/format";
+import { useFormat } from "@/components/country/country-provider";
 import type { LoanResult } from "@/lib/loan";
 import { cn } from "@/lib/utils";
 
@@ -59,6 +59,8 @@ function Stat({ label, value, caption, tone = "neutral", format = "currency", he
 }
 
 export function StatCards({ result }: { result: LoanResult }) {
+  const { tenure: formatTenure } = useFormat();
+
   const { emi, actual, feesTotal, totalCost, interestToPrincipalRatio } = result;
 
   return (

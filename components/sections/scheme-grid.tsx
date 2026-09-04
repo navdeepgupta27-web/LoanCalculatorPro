@@ -1,7 +1,8 @@
 import Link from "next/link";
 
 import { Reveal } from "@/components/ui/reveal";
-import { RISK_LABEL, SCHEMES } from "@/lib/schemes";
+import { countryHref, type Country } from "@/lib/countries";
+import { RISK_LABEL, schemesFor } from "@/lib/schemes";
 import { cn } from "@/lib/utils";
 
 /**
@@ -11,13 +12,19 @@ import { cn } from "@/lib/utils";
  * projection and a PPF maturity are not the same kind of number, and a grid
  * that showed them identically would imply they were.
  */
-export function SchemeGrid({ className }: { className?: string }) {
+export function SchemeGrid({
+  country,
+  className,
+}: {
+  country: Country;
+  className?: string;
+}) {
   return (
     <div className={cn("grid gap-4 sm:grid-cols-2 lg:grid-cols-4", className)}>
-      {SCHEMES.map((s, i) => (
+      {schemesFor(country.code).map((s, i) => (
         <Reveal key={s.id} delay={i * 50}>
           <Link
-            href={`/${s.slug}`}
+            href={countryHref(country, `/${s.slug}`)}
             className="card card-lift group relative flex h-full flex-col overflow-hidden p-5"
           >
             <span

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-import { formatCompact, formatCurrency } from "@/lib/format";
+import { useFormat } from "@/components/country/country-provider";
 import type { YearSummary } from "@/lib/loan";
 import { cn } from "@/lib/utils";
 
@@ -14,6 +14,8 @@ import { cn } from "@/lib/utils";
  * inverts only in the back half.
  */
 export function YearlyBars({ years, className }: { years: YearSummary[]; className?: string }) {
+  const { compact: formatCompact, currency: formatCurrency } = useFormat();
+
   const [drawn, setDrawn] = useState(false);
   const [hover, setHover] = useState<number | null>(null);
 

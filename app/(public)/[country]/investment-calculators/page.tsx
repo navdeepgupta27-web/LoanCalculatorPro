@@ -8,20 +8,30 @@ import { ButtonLink } from "@/components/ui/button";
 import { Reveal } from "@/components/ui/reveal";
 import { formatDate } from "@/lib/format";
 import { getSchemeRates, type SchemeRate } from "@/lib/queries";
-import { RISK_LABEL, SCHEMES, INVESTMENT_KEYWORDS, STATUTORY_SCHEMES } from "@/lib/schemes";
+import { RISK_LABEL, schemesFor, INVESTMENT_KEYWORDS, STATUTORY_SCHEMES } from "@/lib/schemes";
+import { countryHref, resolveCountry } from "@/lib/countries";
 import { breadcrumbSchema, itemListSchema, pageMetadata } from "@/lib/seo";
 import { cn } from "@/lib/utils";
 
-export const metadata = pageMetadata({
-  title: "Investment & Savings Calculators — SIP, PPF, FD, NPS & More",
-  description:
-    "Free calculators for SIP, lumpsum, FD, RD, PPF, Sukanya Samriddhi, NPS and EPF. See maturity value, absolute return, CAGR and XIRR — with risk, lock-in and tax treatment shown alongside every projection.",
-  path: "/investment-calculators",
-  keywords: [
-    ...INVESTMENT_KEYWORDS,
-    ...SCHEMES.flatMap((s) => s.keywords.slice(0, 3)),
-  ],
-});
+type Props = { params: Promise<{ country: string }> };
+
+export async function generateMetadata({ params }: Props) {
+  const { country: code } = await params;
+  const country = resolveCountry(code);
+
+  return pageMetadata({
+    title: "Investment & Savings Calculators — SIP, PPF, FD, NPS & More",
+    description:
+      "Free calculators for SIP, lumpsum, FD, RD, PPF, Sukanya Samriddhi, NPS and EPF. See maturity value, absolute return, CAGR and XIRR — with risk, lock-in and tax treatment shown alongside every projection.",
+    path: countryHref(country, "/investment-calculators"),
+    keywords: [
+      ...INVESTMENT_KEYWORDS,
+      ...schemesFor(country.code).flatMap((s) => s.keywords.slice(0, 3)),
+    ],
+    country,
+    countryPath: "/investment-calculators",
+  });
+}
 
 export const revalidate = 3600;
 
@@ -32,26 +42,35 @@ const RISK_TONE = {
   high: "rose",
 } as const;
 
-export default async function InvestmentCalculatorsPage() {
+export default async function InvestmentCalculatorsPage({ params }: Props) {
+  const { country: code } = await params;
+  const country = resolveCountry(code);
+  const href = (path: string) => countryHref(country, path);
+
   let rates: SchemeRate[] = [];
   try {
-    rates = await getSchemeRates();
+    rates = await getSchemeRates(country.code);
   } catch {
     // The hub renders fine without stored rates.
   }
   const rateFor = (id: string) => rates.find((r) => r.scheme_id === id) ?? null;
+
+  // PPF, Sukanya Samriddhi and EPF are rates set by the Indian government.
+  // There is no equivalent table to show anywhere else, so the section is
+  // empty outside India rather than presenting Indian rates as universal.
+  const statutorySchemes = country.code === "in" ? STATUTORY_SCHEMES : [];
 
   return (
     <>
       <JsonLd
         data={[
           breadcrumbSchema([
-            { name: "Home", path: "/" },
-            { name: "Investment Calculators", path: "/investment-calculators" },
+            { name: "Home", path: countryHref(country) },
+            { name: "Investment Calculators", path: countryHref(country, "/investment-calculators") },
           ]),
           itemListSchema(
             "Investment and savings calculators",
-            SCHEMES.map((s) => ({ name: s.name, path: `/${s.slug}` })),
+            schemesFor(country.code).map((s) => ({ name: s.name, path: countryHref(country, `/${s.slug}`) })),
           ),
         ]}
       />
@@ -63,7 +82,7 @@ export default async function InvestmentCalculatorsPage() {
           <nav aria-label="Breadcrumb" className="mb-5">
             <ol className="flex items-center gap-2 text-xs font-medium text-[var(--text-muted)]">
               <li>
-                <Link href="/" className="transition-colors hover:text-brand-600 dark:hover:text-brand-300">
+                <Link href={href("/")} className="transition-colors hover:text-brand-600 dark:hover:text-brand-300">
                   Home
                 </Link>
               </li>
@@ -88,8 +107,8 @@ export default async function InvestmentCalculatorsPage() {
             </Reveal>
             <Reveal delay={140}>
               <div className="mt-6 flex flex-wrap gap-3">
-                <ButtonLink href="/compare-investments">Compare side by side</ButtonLink>
-                <ButtonLink href="/sip-calculator" variant="secondary">
+                <ButtonLink href={href("/compare-investments")}>Compare side by side</ButtonLink>
+                <ButtonLink href={href("/sip-calculator")} variant="secondary">
                   Start with SIP
                 </ButtonLink>
               </div>
@@ -100,12 +119,12 @@ export default async function InvestmentCalculatorsPage() {
 
       <section className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {SCHEMES.map((s, i) => {
+          {schemesFor(country.code).map((s, i) => {
             const rate = rateFor(s.id);
             return (
               <Reveal key={s.id} delay={i * 55}>
                 <Link
-                  href={`/${s.slug}`}
+                  href={href(`/${s.slug}`)}
                   className="card card-lift group relative flex h-full flex-col overflow-hidden p-5"
                 >
                   <span
@@ -192,7 +211,7 @@ export default async function InvestmentCalculatorsPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {STATUTORY_SCHEMES.map((s) => {
+                  {statutorySchemes.map((s) => {
                     const rate = rateFor(s.id);
                     const published = rate?.rate != null;
                     const confirmed = rate?.verified === 1;
@@ -200,7 +219,7 @@ export default async function InvestmentCalculatorsPage() {
                       <tr key={s.id} className="border-t border-[var(--border)]">
                         <td className="px-4 py-3">
                           <Link
-                            href={`/${s.slug}`}
+                            href={href(`/${s.slug}`)}
                             className="font-semibold text-[var(--text)] transition-colors hover:text-brand-600 dark:hover:text-brand-300"
                           >
                             {s.emoji} {s.name.replace(" Calculator", "")}

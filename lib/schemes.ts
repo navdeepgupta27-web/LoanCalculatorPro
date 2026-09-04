@@ -51,6 +51,23 @@ export interface SchemeConfig {
   maxPerYear?: number;
   /** Whether the return is a government-set rate or a user assumption. */
   rateIsStatutory: boolean;
+  /**
+   * The scheme exists only under Indian law. PPF, Sukanya Samriddhi, NPS and
+   * EPF have no equivalent elsewhere — the nearest foreign products (401(k),
+   * IRA, ISA, SIPP) are different instruments with different limits and tax
+   * treatment, not translations. These are hidden and 404 outside India rather
+   * than shown with rules that do not apply.
+   */
+  indiaOnly?: boolean;
+  /**
+   * Guarantee wording that holds in any country, used outside India.
+   *
+   * `guarantee` and `taxation` both describe Indian arrangements — DICGC cover,
+   * India Post, LTCG thresholds, Section 80C. Displaying them to someone in
+   * another country would be stating another jurisdiction's tax law as if it
+   * were theirs.
+   */
+  guaranteeUniversal?: string;
   /** Fallback assumption used only when nothing is stored and nothing entered. */
   defaultRate: number;
   defaultYears: number;
@@ -71,6 +88,7 @@ export const SCHEMES: SchemeConfig[] = [
     kind: "market",
     risk: "high",
     guarantee: "None — returns depend entirely on market performance",
+    guaranteeUniversal: "None — returns depend entirely on market performance",
     taxation: "Equity: 12.5% LTCG above ₹1.25 lakh a year after 12 months. Debt: taxed at your slab rate.",
     lockIn: "None, except ELSS funds (3 years)",
     liquidity: "High — redeemable on any business day",
@@ -104,6 +122,7 @@ export const SCHEMES: SchemeConfig[] = [
     kind: "market",
     risk: "high",
     guarantee: "None — returns depend entirely on market performance",
+    guaranteeUniversal: "None — returns depend entirely on market performance",
     taxation: "Equity: 12.5% LTCG above ₹1.25 lakh a year after 12 months. Debt: taxed at your slab rate.",
     lockIn: "None, except ELSS funds (3 years)",
     liquidity: "High — redeemable on any business day",
@@ -135,6 +154,7 @@ export const SCHEMES: SchemeConfig[] = [
     kind: "guaranteed",
     risk: "none",
     guarantee: "Contractual rate from the bank; deposits insured by DICGC up to ₹5 lakh per bank per depositor",
+    guaranteeUniversal: "Contractual rate agreed with the bank. Whether deposits are insured, and up to what limit, depends on your country's scheme.",
     taxation: "Interest taxed at your income-tax slab rate. TDS applies above the annual threshold.",
     lockIn: "Until maturity — premature withdrawal usually carries a rate penalty",
     liquidity: "Moderate — breakable, at a cost",
@@ -167,6 +187,7 @@ export const SCHEMES: SchemeConfig[] = [
     kind: "guaranteed",
     risk: "none",
     guarantee: "Contractual rate from the bank or India Post; bank deposits insured by DICGC up to ₹5 lakh",
+    guaranteeUniversal: "Contractual rate agreed with the bank. Whether deposits are insured, and up to what limit, depends on your country's scheme.",
     taxation: "Interest taxed at your income-tax slab rate. TDS applies above the annual threshold.",
     lockIn: "Until maturity — premature closure carries a penalty",
     liquidity: "Moderate",
@@ -189,6 +210,7 @@ export const SCHEMES: SchemeConfig[] = [
   },
   {
     id: "ppf",
+    indiaOnly: true,
     slug: "ppf-calculator",
     name: "PPF Calculator",
     shortName: "PPF",
@@ -224,6 +246,7 @@ export const SCHEMES: SchemeConfig[] = [
   },
   {
     id: "ssy",
+    indiaOnly: true,
     slug: "sukanya-samriddhi-calculator",
     name: "Sukanya Samriddhi Calculator",
     shortName: "SSY",
@@ -258,6 +281,7 @@ export const SCHEMES: SchemeConfig[] = [
   },
   {
     id: "nps",
+    indiaOnly: true,
     slug: "nps-calculator",
     name: "NPS Calculator",
     shortName: "NPS",
@@ -290,6 +314,7 @@ export const SCHEMES: SchemeConfig[] = [
   },
   {
     id: "epf",
+    indiaOnly: true,
     slug: "epf-calculator",
     name: "EPF Calculator",
     shortName: "EPF",
@@ -331,6 +356,21 @@ export function schemeBySlug(slug: string): SchemeConfig | undefined {
 
 /** Schemes whose rate is government-set and therefore worth publishing. */
 export const STATUTORY_SCHEMES = SCHEMES.filter((s) => s.rateIsStatutory);
+
+/** Slugs that only resolve under /in. */
+export const INDIA_ONLY_SLUGS = new Set(SCHEMES.filter((s) => s.indiaOnly).map((s) => s.slug));
+
+/**
+ * The schemes offered in a country.
+ *
+ * Outside India the four Indian statutory schemes are dropped entirely. What
+ * remains — SIP, lumpsum, FD and RD — are ordinary financial products that
+ * exist everywhere and whose arithmetic is identical; only the currency and the
+ * tax commentary differ, and the tax commentary is withheld rather than guessed.
+ */
+export function schemesFor(countryCode: string): SchemeConfig[] {
+  return countryCode === "in" ? SCHEMES : SCHEMES.filter((s) => !s.indiaOnly);
+}
 
 export const RISK_LABEL: Record<SchemeRisk, string> = {
   none: "No market risk",

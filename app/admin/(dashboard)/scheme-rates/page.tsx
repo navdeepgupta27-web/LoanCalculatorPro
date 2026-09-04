@@ -1,12 +1,22 @@
+import { AdminCountrySwitch } from "@/components/admin/country-switch";
 import { SchemeRatesEditor } from "@/components/admin/scheme-rates-editor";
 import { PageHeading } from "@/components/admin/widgets";
+import { DEFAULT_COUNTRY, resolveCountry } from "@/lib/countries";
 import { getSchemeRates } from "@/lib/queries";
 
-export default async function AdminSchemeRatesPage() {
-  const rates = await getSchemeRates().catch(() => []);
+export default async function AdminSchemeRatesPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ country?: string }>;
+}) {
+  const { country: requested } = await searchParams;
+  const country = resolveCountry(requested ?? DEFAULT_COUNTRY);
+  const rates = await getSchemeRates(country.code).catch(() => []);
 
   return (
     <>
+      <AdminCountrySwitch current={country.code} />
+
       <PageHeading
         title="Scheme rates"
         description="Government-set rates for PPF, Sukanya Samriddhi and EPF. Record the figure with the page you read it on, then confirm it."
@@ -24,7 +34,7 @@ export default async function AdminSchemeRatesPage() {
         </p>
       </div>
 
-      <SchemeRatesEditor rates={rates} />
+      <SchemeRatesEditor rates={rates} country={country.code} />
     </>
   );
 }

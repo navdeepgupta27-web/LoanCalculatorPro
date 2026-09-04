@@ -204,6 +204,15 @@ export type LoanTypeConfig = {
     rate: [number, number, number];
     tenure: [number, number, number];
   };
+  /**
+   * Markets where this product is commonly offered. Absent means everywhere.
+   *
+   * A loan against gold jewellery is a mainstream retail product in India and
+   * the Gulf and essentially absent from retail banking in the US, UK, Canada
+   * and Australia. Offering a calculator for it there would be inventing a
+   * market rather than serving one.
+   */
+  availableIn?: string[];
   /** Short marketing blurb used on cards and meta descriptions. */
   blurb: string;
   keywords: string[];
@@ -328,6 +337,7 @@ export const LOAN_TYPES: LoanTypeConfig[] = [
   },
   {
     id: "gold",
+    availableIn: ["in", "ae"],
     slug: "gold-loan-emi-calculator",
     rateSlug: "gold-loan",
     label: "Gold Loan",
@@ -351,6 +361,22 @@ export const LOAN_TYPES: LoanTypeConfig[] = [
 export const LOAN_TYPE_MAP: Record<LoanTypeId, LoanTypeConfig> = Object.fromEntries(
   LOAN_TYPES.map((t) => [t.id, t]),
 ) as Record<LoanTypeId, LoanTypeConfig>;
+
+/**
+ * The loan products offered in a country.
+ *
+ * Everything except gold is universal — the reducing-balance arithmetic and the
+ * product itself both travel. Only availability is filtered here; the naming
+ * ("home loan" vs "mortgage") is still Indian everywhere and is worth
+ * localising separately.
+ */
+export function loanTypesFor(countryCode: string): LoanTypeConfig[] {
+  return LOAN_TYPES.filter((t) => !t.availableIn || t.availableIn.includes(countryCode));
+}
+
+export function loanTypeAvailable(countryCode: string, type: LoanTypeConfig): boolean {
+  return !type.availableIn || type.availableIn.includes(countryCode);
+}
 
 export function loanTypeBySlug(slug: string): LoanTypeConfig | undefined {
   return LOAN_TYPES.find((t) => t.slug === slug);
@@ -417,12 +443,19 @@ export const NAV_MENUS: NavMenu[] = [
   },
 ];
 
-/** Flat header items, shown after the two dropdowns. */
+/**
+ * Flat header items, shown after the two dropdowns.
+ *
+ * `perCountry` marks the ones that live under a country prefix. The guides and
+ * the FAQ are shared across every market and keep their bare paths — those are
+ * also the site's most valuable indexed URLs, and duplicating them per country
+ * would be thin content competing with itself.
+ */
 export const PRIMARY_NAV = [
-  { label: "Interest Rates", href: "/bank-interest-rates" },
-  { label: "Compare Banks", href: "/compare-loans" },
-  { label: "Guides", href: "/blog" },
-  { label: "FAQ", href: "/faq" },
+  { label: "Interest Rates", href: "/bank-interest-rates", perCountry: true },
+  { label: "Compare Banks", href: "/compare-loans", perCountry: true },
+  { label: "Guides", href: "/blog", perCountry: false },
+  { label: "FAQ", href: "/faq", perCountry: false },
 ] as const;
 
 export const LEGAL_NAV = [

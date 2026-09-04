@@ -7,38 +7,52 @@ import { SectionHeading } from "@/components/sections/section-heading";
 import { JsonLd } from "@/components/seo/json-ld";
 import { Reveal } from "@/components/ui/reveal";
 import { getLenderDirectory, getRateCoverage, type RateCoverage } from "@/lib/queries";
+import { countryHref, resolveCountry } from "@/lib/countries";
 import { breadcrumbSchema, pageMetadata, rateTableSchema } from "@/lib/seo";
 import { HEADLINE_LENDERS, LOAN_TYPES, RATE_KEYWORDS, type LoanTypeId } from "@/lib/site";
 
-export const metadata = pageMetadata({
-  title: "Bank Interest Rates in India — All Loan Types Compared",
-  description:
-    "Current interest rates, processing fees and maximum tenures for home, car, personal, business, education and gold loans across Indian public banks, private banks, housing finance companies and NBFCs. Every rate dated and linked to the lender's own published page.",
-  path: "/bank-interest-rates",
-  keywords: [
-    "bank interest rates India",
-    "latest home loan interest rates",
-    "lowest interest rate bank India",
-    "personal loan interest rates comparison",
-    "car loan interest rates all banks",
-    "SBI HDFC ICICI loan interest rate",
-    "current loan rates India",
-    "bank loan processing fees comparison",
-    "NBFC interest rates India",
-    "housing finance company rates",
-    // Bank-name intent: "SBI interest rate", "current HDFC Bank rate", …
-    ...HEADLINE_LENDERS.flatMap((b) => [
-      `${b} interest rate`,
-      `current ${b} interest rate`,
-    ]),
-    ...RATE_KEYWORDS,
-  ],
-});
+type Props = { params: Promise<{ country: string }> };
+
+export async function generateMetadata({ params }: Props) {
+  const { country: code } = await params;
+  const country = resolveCountry(code);
+
+  return pageMetadata({
+    title: "Bank Interest Rates in India — All Loan Types Compared",
+    description:
+      "Current interest rates, processing fees and maximum tenures for home, car, personal, business, education and gold loans across Indian public banks, private banks, housing finance companies and NBFCs. Every rate dated and linked to the lender's own published page.",
+    path: countryHref(country, "/bank-interest-rates"),
+    keywords: [
+      "bank interest rates India",
+      "latest home loan interest rates",
+      "lowest interest rate bank India",
+      "personal loan interest rates comparison",
+      "car loan interest rates all banks",
+      "SBI HDFC ICICI loan interest rate",
+      "current loan rates India",
+      "bank loan processing fees comparison",
+      "NBFC interest rates India",
+      "housing finance company rates",
+      // Bank-name intent: "SBI interest rate", "current HDFC Bank rate", …
+      ...HEADLINE_LENDERS.flatMap((b) => [
+        `${b} interest rate`,
+        `current ${b} interest rate`,
+      ]),
+      ...RATE_KEYWORDS,
+    ],
+    country,
+    countryPath: "/bank-interest-rates",
+  });
+}
 
 // Rates change often, so the page is rebuilt hourly.
 export const revalidate = 3600;
 
-export default async function BankRatesPage() {
+export default async function BankRatesPage({ params }: Props) {
+  const { country: code } = await params;
+  const country = resolveCountry(code);
+  const href = (path: string) => countryHref(country, path);
+
   let lenders: DirectoryRow[] = [];
   let coverage: RateCoverage = {
     total: 0,
@@ -49,7 +63,7 @@ export default async function BankRatesPage() {
   };
 
   try {
-    const [directory, cov] = await Promise.all([getLenderDirectory(), getRateCoverage()]);
+    const [directory, cov] = await Promise.all([getLenderDirectory(country.code), getRateCoverage(country.code)]);
     coverage = cov;
     lenders = directory.map((b) => ({
       id: b.id,
@@ -71,8 +85,8 @@ export default async function BankRatesPage() {
         data={[
           rateTableSchema("Loan", lenders.length, "/bank-interest-rates"),
           breadcrumbSchema([
-            { name: "Home", path: "/" },
-            { name: "Bank Interest Rates", path: "/bank-interest-rates" },
+            { name: "Home", path: countryHref(country) },
+            { name: "Bank Interest Rates", path: countryHref(country, "/bank-interest-rates") },
           ]),
         ]}
       />
@@ -83,7 +97,7 @@ export default async function BankRatesPage() {
           <nav aria-label="Breadcrumb" className="mb-5">
             <ol className="flex items-center gap-2 text-xs font-medium text-[var(--text-muted)]">
               <li>
-                <Link href="/" className="transition-colors hover:text-brand-600 dark:hover:text-brand-300">
+                <Link href={href("/")} className="transition-colors hover:text-brand-600 dark:hover:text-brand-300">
                   Home
                 </Link>
               </li>
@@ -113,7 +127,7 @@ export default async function BankRatesPage() {
               {LOAN_TYPES.map((t) => (
                 <Link
                   key={t.id}
-                  href={`/bank-interest-rates/${t.rateSlug}`}
+                  href={href(`/bank-interest-rates/${t.rateSlug}`)}
                   className="flex items-center gap-1.5 rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm font-semibold text-[var(--text-secondary)] transition-all duration-200 hover:-translate-y-0.5 hover:border-brand-400 hover:text-brand-600 dark:hover:text-brand-300"
                 >
                   <span>{t.emoji}</span>
@@ -127,7 +141,7 @@ export default async function BankRatesPage() {
 
       <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
         <div className="mb-5">
-          <CoverageNotice coverage={coverage} />
+          <CoverageNotice coverage={coverage} country={country} />
         </div>
         <LenderDirectory rows={lenders} />
       </section>
@@ -162,7 +176,7 @@ export default async function BankRatesPage() {
             and prepayment penalties all add to what you pay. A lender 0.10% cheaper on rate can be
             meaningfully more expensive once a 1% processing fee is applied to a large principal.
             The{" "}
-            <Link href="/compare-loans">comparison tool</Link> ranks offers on total outflow for
+            <Link href={href("/compare-loans")}>comparison tool</Link> ranks offers on total outflow for
             exactly this reason.
           </p>
           <h2>Verify before you act</h2>

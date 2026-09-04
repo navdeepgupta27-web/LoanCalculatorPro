@@ -1,4 +1,5 @@
-import { formatDate } from "@/lib/format";
+import { createFormatters } from "@/lib/format";
+import type { Country } from "@/lib/countries";
 import type { RateCoverage } from "@/lib/queries";
 
 /**
@@ -9,7 +10,15 @@ import type { RateCoverage } from "@/lib/queries";
  * declared here instead. The denominator is the number of lenders listed,
  * which is what a reader sees, not the number of rate rows in the database.
  */
-export function CoverageNotice({ coverage }: { coverage: RateCoverage }) {
+export function CoverageNotice({
+  coverage,
+  country,
+}: {
+  coverage: RateCoverage;
+  country: Country;
+}) {
+  const { date: formatDate } = createFormatters(country);
+
   const { verified, lenders, lastUpdated } = coverage;
 
   if (lenders === 0) {

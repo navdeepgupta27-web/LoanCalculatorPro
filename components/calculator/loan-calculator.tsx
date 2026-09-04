@@ -12,7 +12,7 @@ import { Field, Input } from "@/components/ui/field";
 import { Segmented } from "@/components/ui/segmented";
 import { SliderField } from "@/components/ui/slider-field";
 import { useToast } from "@/components/ui/toast";
-import { formatCompact, formatCurrency, formatPercent, formatTenure } from "@/lib/format";
+import { useFormat } from "@/components/country/country-provider";
 import {
   calculateLoan,
   downloadCsv,
@@ -139,6 +139,8 @@ export function LoanCalculator({
   showTypeSelector?: boolean;
   className?: string;
 }) {
+  const { symbol, compact: formatCompact, currency: formatCurrency, percent: formatPercent, tenure: formatTenure } = useFormat();
+
   const { toast } = useToast();
   const [state, setState] = useState<CalcState>(() => defaultsFor(initialType));
   const [chartTab, setChartTab] = useState<ChartTab>("split");
@@ -300,7 +302,7 @@ export function LoanCalculator({
 
             <SliderField
               label="Loan amount"
-              prefix="₹"
+              prefix={symbol}
               value={state.amount}
               onChange={(amount) => patch({ amount })}
               min={config.ranges.amount[0]}

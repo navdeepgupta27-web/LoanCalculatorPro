@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 
+import { CURATED_COUNTRIES, DEFAULT_COUNTRY, type Country } from "./countries";
 import { SCHEMES } from "./schemes";
 import { ALL_KEYWORDS, LOAN_TYPES, SITE, SITE_URL, SOCIAL_LINKS } from "./site";
 
@@ -19,6 +20,15 @@ interface PageMetaInput {
   publishedTime?: string;
   modifiedTime?: string;
   noIndex?: boolean;
+  /**
+   * For a page that exists once per country. Pass the country and the path
+   * WITHOUT its country prefix, e.g. "/sip-calculator". The prefix is added,
+   * hreflang links to every researched market are emitted, and pages for
+   * countries whose data has not been researched are kept out of the index.
+   */
+  country?: Country;
+  /** Path without the country prefix, used to build the hreflang set. */
+  countryPath?: string;
 }
 
 /**
@@ -36,18 +46,56 @@ export function pageMetadata({
   publishedTime,
   modifiedTime,
   noIndex = false,
+  country,
+  countryPath,
 }: PageMetaInput): Metadata {
   const url = `${SITE_URL}${path === "/" ? "" : path}`;
   const image = ogImage ?? `${SITE_URL}/opengraph-image`;
   const fullTitle = path === "/" ? title : `${title} | ${SITE.name}`;
 
+  /**
+   * One page per country means 206 near-identical pages differing only in
+   * currency, which is textbook thin-content duplication. The researched
+   * markets are indexed and cross-linked with hreflang; everywhere else the
+   * page still works for whoever asked, but is kept out of search.
+   */
+  const languages =
+    country && countryPath
+      ? Object.fromEntries([
+          ...CURATED_COUNTRIES.map((c) => [
+            `en-${c.code.toUpperCase()}`,
+            `${SITE_URL}/${c.code}${countryPath}`,
+          ]),
+          ["x-default", `${SITE_URL}/${DEFAULT_COUNTRY}${countryPath}`],
+        ])
+      : undefined;
+
+  const keepOut = noIndex || (country !== undefined && !country.curated);
+
+  /**
+   * The keyword sets were written for an India-only site: they name Indian
+   * lenders, use lakh and crore, and append "India" to head terms. Emitting
+   * them on a US or UK page targets the wrong market and reads as keyword
+   * stuffing, so they are filtered out everywhere except India.
+   *
+   * A filter rather than a second hand-maintained list, because the terms that
+   * travel — "EMI calculator", "SIP calculator", "compare loans" — are the
+   * majority, and duplicating them would leave two lists to drift apart.
+   */
+  const INDIA_SPECIFIC =
+    /\bindia(n)?\b|\blakh\b|\bcrore\b|\bRBI\b|\bNBFC\b|\bGST\b|\bSBI\b|HDFC|ICICI|Axis Bank|Kotak|Punjab National|Bank of Baroda|Canara|IndusInd|IDFC|Bajaj|LIC |Tata Capital|Federal Bank|Union Bank|EPFO|Sukanya|PPF|NPS|EPF\b/i;
+
+  const pool = Array.from(new Set([...keywords, ...ALL_KEYWORDS]));
+  const scopedKeywords =
+    country && country.code !== "in" ? pool.filter((k) => !INDIA_SPECIFIC.test(k)) : pool;
+
   return {
     title,
     description,
-    keywords: Array.from(new Set([...keywords, ...ALL_KEYWORDS])).slice(0, 60),
-    alternates: { canonical: url },
-    robots: noIndex
-      ? { index: false, follow: false, nocache: true }
+    keywords: scopedKeywords.slice(0, 60),
+    alternates: { canonical: url, ...(languages ? { languages } : {}) },
+    robots: keepOut
+      ? { index: false, follow: true, nocache: true }
       : {
           index: true,
           follow: true,

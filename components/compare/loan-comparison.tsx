@@ -10,7 +10,7 @@ import { Field, Input, Select } from "@/components/ui/field";
 import { Segmented } from "@/components/ui/segmented";
 import { SliderField } from "@/components/ui/slider-field";
 import { useToast } from "@/components/ui/toast";
-import { formatCompact, formatCurrency, formatPercent, formatRate, formatTenure } from "@/lib/format";
+import { useFormat } from "@/components/country/country-provider";
 import {
   compareLoans,
   comparisonToCsv,
@@ -59,6 +59,8 @@ function seedLenders(type: LoanTypeId): Lender[] {
 }
 
 export function LoanComparison({ rateOptions = [] }: { rateOptions?: RateOption[] }) {
+  const { symbol, compact: formatCompact, currency: formatCurrency, percent: formatPercent, rate: formatRate, tenure: formatTenure } = useFormat();
+
   const { toast } = useToast();
   const [loanType, setLoanType] = useState<LoanTypeId>("home");
   const [amount, setAmount] = useState(LOAN_TYPE_MAP.home.defaults.amount);
@@ -173,7 +175,7 @@ export function LoanComparison({ rateOptions = [] }: { rateOptions?: RateOption[
         <div className="mt-5 max-w-md">
           <SliderField
             label="Loan amount"
-            prefix="₹"
+            prefix={symbol}
             value={amount}
             onChange={setAmount}
             min={config.ranges.amount[0]}

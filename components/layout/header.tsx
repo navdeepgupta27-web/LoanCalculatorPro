@@ -4,6 +4,11 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 
+import { CountrySelector } from "@/components/country/country-selector";
+import { useCountryFromPath } from "@/components/country/country-provider";
+import { countryHref } from "@/lib/countries";
+import { INDIA_ONLY_SLUGS } from "@/lib/schemes";
+import { LOAN_TYPES } from "@/lib/site";
 import { NAV_MENUS, PRIMARY_NAV } from "@/lib/site";
 import { cn } from "@/lib/utils";
 
@@ -12,6 +17,24 @@ import { ThemeToggle } from "./theme";
 
 export function Header() {
   const pathname = usePathname();
+  const country = useCountryFromPath();
+  // The calculators and rate tables live under a country prefix; the blog,
+  // FAQ and legal pages are shared and keep their bare paths.
+  const href = (path: string) => countryHref(country, path);
+  // The Indian statutory schemes 404 outside India, so they must not be offered
+  // in the menu there either.
+  const unavailable = new Set(
+    LOAN_TYPES.filter((t) => t.availableIn && !t.availableIn.includes(country.code)).map(
+      (t) => t.slug,
+    ),
+  );
+  const menuItems = <T extends { href: string }>(items: readonly T[]) =>
+    items.filter((i) => {
+      const slug = i.href.replace(/^\//, "");
+      if (unavailable.has(slug)) return false;
+      return country.code === "in" || !INDIA_ONLY_SLUGS.has(slug);
+    });
+
   const [scrolled, setScrolled] = useState(false);
   // Which dropdown is open, by its label — only one at a time.
   const [openMenu, setOpenMenu] = useState<string | null>(null);
@@ -69,6 +92,7 @@ export function Header() {
           <nav aria-label="Primary" className="hidden items-center gap-0.5 lg:flex">
             {NAV_MENUS.map((menu) => {
               const open = openMenu === menu.label;
+              const items = menuItems(menu.items);
               return (
                 <div
                   key={menu.label}
@@ -77,7 +101,7 @@ export function Header() {
                   onMouseLeave={() => setOpenMenu(null)}
                 >
                   <Link
-                    href={menu.href}
+                    href={href(menu.href)}
                     className={cn(
                       "flex items-center gap-1 rounded-lg px-3 py-2 text-sm font-semibold transition-colors",
                       isActive(menu.href)
@@ -113,10 +137,10 @@ export function Header() {
                   >
                     <div className="card p-2 shadow-[var(--shadow-lift)]">
                       <div className="grid grid-cols-2 gap-1">
-                        {menu.items.map((item) => (
+                        {items.map((item) => (
                           <Link
                             key={item.href}
-                            href={item.href}
+                            href={href(item.href)}
                             className="group flex items-center gap-2.5 rounded-lg px-3 py-2.5 transition-colors hover:bg-[var(--bg-subtle)]"
                           >
                             <span className="text-lg transition-transform duration-200 group-hover:scale-110">
@@ -134,7 +158,7 @@ export function Header() {
                         ))}
                       </div>
                       <Link
-                        href={menu.footerLink.href}
+                        href={href(menu.footerLink.href)}
                         className="mt-1 flex items-center justify-between rounded-lg border-t border-[var(--border)] px-3 pb-1 pt-2.5 text-[0.8125rem] font-semibold text-brand-600 transition-colors hover:text-brand-500 dark:text-brand-300"
                       >
                         {menu.footerLink.label}
@@ -149,7 +173,7 @@ export function Header() {
             {PRIMARY_NAV.map((item) => (
               <Link
                 key={item.href}
-                href={item.href}
+                href={item.perCountry ? href(item.href) : item.href}
                 className={cn(
                   "relative rounded-lg px-3 py-2 text-sm font-semibold transition-colors",
                   isActive(item.href)
@@ -166,6 +190,7 @@ export function Header() {
           </nav>
 
           <div className="flex items-center gap-2">
+            <CountrySelector />
             <ThemeToggle />
             <Link
               href="/feedback"
@@ -238,10 +263,10 @@ export function Header() {
                 {menu.label}
               </p>
               <div className="grid grid-cols-2 gap-1.5">
-                {menu.items.map((item) => (
+                {menuItems(menu.items).map((item) => (
                   <Link
                     key={item.href}
-                    href={item.href}
+                    href={href(item.href)}
                     className="flex items-center gap-2 rounded-xl border border-[var(--border)] px-3 py-2.5 text-sm font-semibold text-[var(--text)] transition-colors hover:bg-[var(--bg-subtle)]"
                   >
                     <span>{item.emoji}</span>
@@ -250,7 +275,7 @@ export function Header() {
                 ))}
               </div>
               <Link
-                href={menu.footerLink.href}
+                href={href(menu.footerLink.href)}
                 className="mt-1.5 block px-1 text-[0.8125rem] font-semibold text-brand-600 dark:text-brand-300"
               >
                 {menu.footerLink.label} →
@@ -265,7 +290,7 @@ export function Header() {
             {PRIMARY_NAV.map((item) => (
               <Link
                 key={item.href}
-                href={item.href}
+                href={item.perCountry ? href(item.href) : item.href}
                 className={cn(
                   "rounded-xl px-3 py-2.5 text-sm font-semibold transition-colors",
                   isActive(item.href)

@@ -2,7 +2,7 @@
 
 import { useId, useMemo, useState, type ReactNode } from "react";
 
-import { formatCompact, numberToWords } from "@/lib/format";
+import { useFormat } from "@/components/country/country-provider";
 import { clamp, cn } from "@/lib/utils";
 
 import { Input } from "./field";
@@ -43,10 +43,15 @@ export function SliderField({
   suffix,
   showWords,
   presets,
-  formatPreset = formatCompact,
+  formatPreset,
   hint,
   decimals = 0,
 }: SliderFieldProps) {
+  const { compact: formatCompact, words: numberToWords } = useFormat();
+  // Resolved here rather than as a default parameter: the formatter depends
+  // on the country, which is only available once the hook has run.
+  const preset = formatPreset ?? formatCompact;
+
   const id = useId();
   const [draft, setDraft] = useState<string | null>(null);
 
@@ -77,7 +82,7 @@ export function SliderField({
           {label}
         </label>
         <span className="text-xs font-medium text-[var(--text-muted)]">
-          {formatPreset(min)} – {formatPreset(max)}
+          {preset(min)} – {preset(max)}
         </span>
       </div>
 
@@ -133,7 +138,7 @@ export function SliderField({
                   : "border-[var(--border)] text-[var(--text-muted)] hover:border-brand-400 hover:text-brand-600 dark:hover:text-brand-300",
               )}
             >
-              {formatPreset(p)}
+              {preset(p)}
             </button>
           ))}
         </div>

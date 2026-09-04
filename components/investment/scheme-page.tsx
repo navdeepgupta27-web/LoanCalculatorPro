@@ -5,7 +5,8 @@ import { InvestmentCalculator } from "@/components/investment/investment-calcula
 import { Badge } from "@/components/ui/badge";
 import { ButtonLink } from "@/components/ui/button";
 import { Reveal } from "@/components/ui/reveal";
-import { formatCurrency, formatDate } from "@/lib/format";
+import type { Country } from "@/lib/countries";
+import { createFormatters } from "@/lib/format";
 import type { SchemeRate } from "@/lib/queries";
 import { RISK_LABEL, SCHEMES, type SchemeConfig } from "@/lib/schemes";
 
@@ -26,19 +27,36 @@ const RISK_TONE = {
 export function SchemePage({
   scheme,
   rate,
+  country,
 }: {
   scheme: SchemeConfig;
   rate: SchemeRate | null;
+  country: Country;
 }) {
+  const { currency: formatCurrency, date: formatDate } = createFormatters(country);
   const others = SCHEMES.filter((s) => s.id !== scheme.id);
   const storedRate = rate?.rate ?? null;
 
+  // `guarantee` and `taxation` describe Indian arrangements — DICGC cover,
+  // India Post, LTCG thresholds, Section 80C. Outside India the guarantee falls
+  // back to wording that holds anywhere, and tax treatment is stated as unknown
+  // rather than asserted from another country's rules.
+  const inIndia = country.code === "in";
+
   const facts = [
     { label: "Risk", value: RISK_LABEL[scheme.risk] },
-    { label: "Guaranteed by", value: scheme.guarantee },
+    {
+      label: "Guaranteed by",
+      value: inIndia ? scheme.guarantee : (scheme.guaranteeUniversal ?? scheme.guarantee),
+    },
     { label: "Lock-in", value: scheme.lockIn },
     { label: "Liquidity", value: scheme.liquidity },
-    { label: "Tax treatment", value: scheme.taxation },
+    {
+      label: "Tax treatment",
+      value: inIndia
+        ? scheme.taxation
+        : `Depends on the rules in ${country.name}, which we have not documented yet. Check with a local adviser before relying on any after-tax figure.`,
+    },
     ...(scheme.maxPerYear
       ? [{ label: "Yearly limit", value: `${formatCurrency(scheme.maxPerYear)} maximum` }]
       : []),
@@ -157,7 +175,19 @@ export function SchemePage({
 
       <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
         <InvestmentCalculator
-          scheme={scheme}
+          scheme={
+            // The Indian tax and guarantee wording is stripped before the
+            // config crosses to the client. Nothing rendered it outside India,
+            // but it was travelling in the serialised payload of every
+            // country's page and showing up in the HTML source.
+            inIndia
+              ? scheme
+              : {
+                  ...scheme,
+                  taxation: "",
+                  guarantee: scheme.guaranteeUniversal ?? scheme.guarantee,
+                }
+          }
           storedRate={storedRate}
           rateSourceUrl={rate?.source_url}
           ratePeriod={rate?.period_label}

@@ -23,7 +23,11 @@
     "db:guides:prod": "node --conditions=react-server --env-file=.env.prod.local --import tsx scripts/add-guides.ts",
     "db:scheme-rates:prod": "node --conditions=react-server --env-file=.env.prod.local --import tsx scripts/seed-scheme-rates.ts",
     "db:investment-guides:prod": "node --conditions=react-server --env-file=.env.prod.local --import tsx scripts/add-investment-guides.ts",
-    "verify:sw": "node --import tsx scripts/verify-sw.ts"
+    "verify:sw": "node --import tsx scripts/verify-sw.ts",
+    "gen:favicon": "node --import tsx scripts/make-favicon.tsx",
+    "verify:countries": "node --import tsx scripts/verify-countries.ts",
+    "db:migrate:country": "node --conditions=react-server --env-file-if-exists=.env.local --import tsx scripts/migrate-country.ts",
+    "db:migrate:country:prod": "node --conditions=react-server --env-file=.env.prod.local --import tsx scripts/migrate-country.ts"
   },
   "dependencies": {
     "@libsql/client": "^0.17.4",

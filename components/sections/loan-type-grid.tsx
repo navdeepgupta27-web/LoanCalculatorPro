@@ -1,17 +1,26 @@
 import Link from "next/link";
 
 import { Reveal } from "@/components/ui/reveal";
-import { formatCompact, formatPercent } from "@/lib/format";
-import { LOAN_TYPES } from "@/lib/site";
+import { createFormatters } from "@/lib/format";
+import { countryHref, type Country } from "@/lib/countries";
+import { loanTypesFor } from "@/lib/site";
 import { cn } from "@/lib/utils";
 
-export function LoanTypeGrid({ className }: { className?: string }) {
+export function LoanTypeGrid({
+  country,
+  className,
+}: {
+  country: Country;
+  className?: string;
+}) {
+  const { compact: formatCompact, percent: formatPercent } = createFormatters(country);
+
   return (
     <div className={cn("grid gap-4 sm:grid-cols-2 lg:grid-cols-3", className)}>
-      {LOAN_TYPES.map((t, i) => (
+      {loanTypesFor(country.code).map((t, i) => (
         <Reveal key={t.id} delay={i * 60}>
           <Link
-            href={`/${t.slug}`}
+            href={countryHref(country, `/${t.slug}`)}
             className="card card-lift group relative flex h-full flex-col overflow-hidden p-5"
           >
             {/* Accent wash keyed to the loan type, revealed on hover. */}

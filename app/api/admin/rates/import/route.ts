@@ -4,6 +4,7 @@ import { NextResponse } from "next/server";
 import { isResponse, requireAdminApi } from "@/lib/auth";
 import { all, run } from "@/lib/db";
 import { LOAN_TYPE_MAP } from "@/lib/site";
+import { CURATED_COUNTRIES, DEFAULT_COUNTRY } from "@/lib/countries";
 import { slugify } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
@@ -85,11 +86,22 @@ export async function POST(request: Request) {
   if (isResponse(session)) return session;
 
   let csv: string;
+  let country: string;
   try {
     const body = await request.json();
     csv = String(body?.csv ?? "");
+    country = String(body?.country ?? DEFAULT_COUNTRY);
   } catch {
     return NextResponse.json({ ok: false, error: "Invalid request." }, { status: 400 });
+  }
+
+  // A bulk import filed against the wrong country would put a whole market's
+  // lenders in the wrong table, so an unrecognised code is rejected outright.
+  if (!CURATED_COUNTRIES.some((c) => c.code === country)) {
+    return NextResponse.json(
+      { ok: false, error: "Rates can only be imported for a market we have set up." },
+      { status: 400 },
+    );
   }
 
   if (!csv.trim()) {
@@ -124,7 +136,10 @@ export async function POST(request: Request) {
 
   try {
     // Cache the bank lookup so a 200-row import is not 200 extra queries.
-    const existing = await all<{ id: number; slug: string }>(`SELECT id, slug FROM banks`);
+    const existing = await all<{ id: number; slug: string }>(
+      `SELECT id, slug FROM banks WHERE country = ?`,
+      [country],
+    );
     const bankBySlug = new Map(existing.map((b) => [b.slug, b.id]));
 
     for (let i = 1; i < rows.length; i++) {
@@ -149,8 +164,9 @@ export async function POST(request: Request) {
       if (!bankId) {
         const category = col(r, "category")?.toLowerCase();
         const result = await run(
-          `INSERT INTO banks (slug, name, short_name, category) VALUES (?, ?, ?, ?)`,
+          `INSERT INTO banks (country, slug, name, short_name, category) VALUES (?, ?, ?, ?, ?)`,
           [
+            country,
             slug,
             bankName,
             bankName.split(/\s+/)[0].slice(0, 12),
@@ -180,9 +196,9 @@ export async function POST(request: Request) {
 
       await run(
         `INSERT INTO rates
-           (bank_id, loan_type, min_rate, max_rate, processing_fee, max_tenure_years,
+           (bank_id, country, loan_type, min_rate, max_rate, processing_fee, max_tenure_years,
             max_amount, source_url, effective_date, verified, notes, updated_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
          ON CONFLICT (bank_id, loan_type) DO UPDATE SET
            min_rate = excluded.min_rate, max_rate = excluded.max_rate,
            processing_fee = excluded.processing_fee,
@@ -192,6 +208,7 @@ export async function POST(request: Request) {
            notes = excluded.notes, updated_at = datetime('now')`,
         [
           bankId,
+          country,
           loanType,
           minRate,
           num(col(r, "max_rate")),
@@ -212,10 +229,10 @@ export async function POST(request: Request) {
     // this the public tables keep serving their cached prerender for up to an
     // hour and the import looks like it did nothing.
     if (imported > 0) {
-      revalidatePath("/bank-interest-rates");
-      revalidatePath("/compare-loans");
+      revalidatePath(`/${country}/bank-interest-rates`);
+      revalidatePath(`/${country}/compare-loans`);
       for (const type of Object.values(LOAN_TYPE_MAP)) {
-        revalidatePath(`/bank-interest-rates/${type.rateSlug}`);
+        revalidatePath(`/${country}/bank-interest-rates/${type.rateSlug}`);
       }
     }
 
