@@ -6,28 +6,30 @@ import { LoanCalculator } from "@/components/calculator/loan-calculator";
 import { FaqSection } from "@/components/sections/faq-section";
 import { FeatureGrid } from "@/components/sections/feature-grid";
 import { LoanTypeGrid } from "@/components/sections/loan-type-grid";
+import { SchemeGrid } from "@/components/sections/scheme-grid";
 import { SectionHeading } from "@/components/sections/section-heading";
 import { JsonLd } from "@/components/seo/json-ld";
 import { ButtonLink } from "@/components/ui/button";
 import { Reveal } from "@/components/ui/reveal";
 import { GENERAL_FAQS } from "@/lib/faqs";
 import { getPublishedPosts } from "@/lib/queries";
+import { INVESTMENT_KEYWORDS, SCHEMES } from "@/lib/schemes";
 import {
   breadcrumbSchema,
   calculatorListSchema,
   faqSchema,
   pageMetadata,
+  siteNavigationSchema,
   softwareApplicationSchema,
 } from "@/lib/seo";
 import { CORE_KEYWORDS, INTENT_KEYWORDS, LOAN_TYPES } from "@/lib/site";
 
 export const metadata = pageMetadata({
-  title:
-    "Loan EMI Calculator with Part-Payment Savings & Bank Comparison",
+  title: "Loan EMI & Investment Calculators — Home Loan, Personal Loan, SIP, PPF",
   description:
-    "Free advanced EMI calculator for home, car, personal, business, education and gold loans in India. Model part-payments, compare tenure vs EMI reduction, rank up to four banks by total cost, and download the full amortisation schedule.",
+    "Free calculators for both sides of your money. Home, personal, car, business, education and gold loan EMIs with part-payment savings and bank comparison — plus SIP, lumpsum, FD, RD, PPF, Sukanya Samriddhi, NPS and EPF with CAGR, XIRR and absolute return.",
   path: "/",
-  keywords: [...CORE_KEYWORDS, ...INTENT_KEYWORDS],
+  keywords: [...CORE_KEYWORDS, ...INTENT_KEYWORDS, ...INVESTMENT_KEYWORDS],
 });
 
 // The calculator itself is static; only the blog strip needs fresh data.
@@ -54,6 +56,7 @@ export default async function HomePage() {
         data={[
           softwareApplicationSchema(),
           calculatorListSchema(),
+          siteNavigationSchema(),
           faqSchema(GENERAL_FAQS),
           breadcrumbSchema([{ name: "Home", path: "/" }]),
         ]}
@@ -76,7 +79,15 @@ export default async function HomePage() {
               <p className="mx-auto mt-5 max-w-2xl text-base leading-relaxed text-[var(--text-secondary)] sm:text-lg">
                 Calculate your EMI, then find out what a part-payment actually saves you — in
                 rupees and in years. Compare lenders on total cost rather than headline rate, and
-                take away a full month-by-month schedule.
+                take away a full month-by-month schedule. Then do the same for the money you are
+                saving, with{" "}
+                <Link
+                  href="/investment-calculators"
+                  className="font-semibold text-brand-600 underline decoration-brand-400/40 underline-offset-4 transition-colors hover:text-brand-500 dark:text-brand-300"
+                >
+                  SIP, PPF, FD and six more calculators
+                </Link>
+                .
               </p>
             </Reveal>
 
@@ -88,8 +99,8 @@ export default async function HomePage() {
                     <path d="M10 4v12m0 0-5-5m5 5 5-5" />
                   </svg>
                 </ButtonLink>
-                <ButtonLink href="/compare-loans" size="lg" variant="secondary">
-                  Compare banks
+                <ButtonLink href="/investment-calculators" size="lg" variant="secondary">
+                  Investment calculators
                 </ButtonLink>
               </div>
             </Reveal>
@@ -137,7 +148,7 @@ export default async function HomePage() {
       <section className="border-y border-[var(--border)] bg-[var(--bg-elevated)]">
         <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
           <SectionHeading
-            eyebrow="Calculators"
+            eyebrow="Loan calculators"
             title="A calculator tuned to your loan"
             description="Each one starts with sensible defaults for that product — realistic amounts, rate bands and maximum tenures — so you are not fighting the sliders before you begin."
           />
@@ -145,6 +156,36 @@ export default async function HomePage() {
             <LoanTypeGrid />
           </div>
         </div>
+      </section>
+
+      {/* ---------------- Investment calculators ---------------- */}
+      <section className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
+        <SectionHeading
+          eyebrow="Investment calculators"
+          title="And eight more for the money you are putting away"
+          description="SIP, lumpsum, FD, RD, PPF, Sukanya Samriddhi, NPS and EPF — each showing maturity value, what you actually contributed, absolute return, CAGR and XIRR, with risk, lock-in and tax treatment stated on the same screen."
+        />
+        <div className="mt-10">
+          <SchemeGrid />
+        </div>
+
+        <Reveal delay={120}>
+          <div className="mt-8 flex flex-col items-center justify-between gap-4 rounded-[var(--radius-card)] border border-[var(--border)] bg-[var(--bg-subtle)] px-6 py-6 sm:flex-row sm:text-left">
+            <div>
+              <h3 className="font-display text-lg font-bold text-[var(--text)]">
+                Not sure which one suits your horizon?
+              </h3>
+              <p className="mt-1 max-w-xl text-sm leading-relaxed text-[var(--text-secondary)]">
+                Put the same amount and the same number of years through every scheme at once and
+                read them side by side — including the risk you are taking and the lock-in you are
+                accepting. We do not name a winner; that depends on facts only you know.
+              </p>
+            </div>
+            <ButtonLink href="/compare-investments" variant="outline" className="shrink-0">
+              Compare investments
+            </ButtonLink>
+          </div>
+        </Reveal>
       </section>
 
       {/* ---------------- How EMI works ---------------- */}
@@ -314,8 +355,8 @@ export default async function HomePage() {
             <SectionHeading
               align="left"
               eyebrow="Guides"
-              title="Borrowing, explained plainly"
-              description="Practical writing on prepayment, refinancing and reading a loan agreement — no jargon, no product pitches."
+              title="Borrowing and investing, explained plainly"
+              description="Practical writing on prepayment, refinancing, reading a loan agreement, and choosing between SIP, PPF and fixed deposits — no jargon, no product pitches."
             />
             <ButtonLink href="/blog" variant="ghost" className="shrink-0">
               All guides →

@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { SCHEMES } from "@/lib/schemes";
 import { LEGAL_NAV, LOAN_TYPES, SITE } from "@/lib/site";
 
 import { Logo } from "./logo";
@@ -8,8 +9,9 @@ import { SocialLinks } from "./social-icons";
 const TOOLS = [
   { label: "EMI Calculator", href: "/" },
   { label: "Compare Bank Loans", href: "/compare-loans" },
+  { label: "Compare Investments", href: "/compare-investments" },
   { label: "Bank Interest Rates", href: "/bank-interest-rates" },
-  { label: "Loan Guides", href: "/blog" },
+  { label: "Money Guides", href: "/blog" },
   { label: "FAQ", href: "/faq" },
 ];
 
@@ -32,12 +34,13 @@ export function Footer() {
   return (
     <footer className="relative mt-20 border-t border-[var(--border)] bg-[var(--surface)] no-print">
       <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
-        <div className="grid gap-10 lg:grid-cols-[1.6fr_1fr_1fr_1fr]">
-          <div className="max-w-sm">
+        <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-[1.5fr_1fr_1fr_1fr_1fr]">
+          <div className="max-w-sm sm:col-span-2 lg:col-span-1">
             <Logo />
             <p className="mt-4 text-sm leading-relaxed text-[var(--text-secondary)]">
-              {SITE.tagline}. Model part-payments, compare lenders side by side, and see the full
-              amortisation schedule — free, and with every calculation done in your own browser.
+              {SITE.tagline}. Fourteen calculators for both sides of your money — EMIs,
+              part-payments and lender comparison on the borrowing side; SIP, PPF, FD, NPS and the
+              rest on the saving side. Free, and every calculation runs in your own browser.
             </p>
 
             <div className="mt-5">
@@ -48,8 +51,10 @@ export function Footer() {
             </div>
           </div>
 
-          <nav aria-label="Calculators">
-            <h2 className="mb-3 font-display text-sm font-bold text-[var(--text)]">Calculators</h2>
+          <nav aria-label="Loan calculators">
+            <h2 className="mb-3 font-display text-sm font-bold text-[var(--text)]">
+              Loan Calculators
+            </h2>
             <ul className="flex flex-col gap-2">
               {LOAN_TYPES.map((t) => (
                 <li key={t.id}>
@@ -57,7 +62,25 @@ export function Footer() {
                     href={`/${t.slug}`}
                     className="text-sm text-[var(--text-secondary)] transition-colors hover:text-brand-600 dark:hover:text-brand-300"
                   >
-                    {t.label} EMI
+                    {t.label} EMI Calculator
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </nav>
+
+          <nav aria-label="Investment calculators">
+            <h2 className="mb-3 font-display text-sm font-bold text-[var(--text)]">
+              Investment Calculators
+            </h2>
+            <ul className="flex flex-col gap-2">
+              {SCHEMES.map((s) => (
+                <li key={s.id}>
+                  <Link
+                    href={`/${s.slug}`}
+                    className="text-sm text-[var(--text-secondary)] transition-colors hover:text-brand-600 dark:hover:text-brand-300"
+                  >
+                    {s.name}
                   </Link>
                 </li>
               ))}
