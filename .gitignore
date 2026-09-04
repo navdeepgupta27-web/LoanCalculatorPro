@@ -30,9 +30,10 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files — real secrets never get committed, the template always does
+# env files — real secrets never get committed, the templates always do
 .env*
 !.env.example
+!.env.prod.local.example
 
 # local SQLite database: holds visitor analytics and submitted feedback
 /data/
