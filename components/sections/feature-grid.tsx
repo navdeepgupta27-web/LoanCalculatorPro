@@ -15,7 +15,7 @@ const FEATURES: Feature[] = [
   {
     icon: "⚖️",
     title: "Tenure vs EMI, side by side",
-    body: "The same ₹5 lakh saves wildly different amounts depending on what the bank does with it. Switch between cutting the term and cutting the instalment and watch both numbers move.",
+    body: "The same lump sum saves wildly different amounts depending on what the bank does with it. Switch between cutting the term and cutting the instalment and watch both numbers move.",
   },
   {
     icon: "🏦",

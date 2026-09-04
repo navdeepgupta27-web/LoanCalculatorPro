@@ -6,7 +6,7 @@ import { JsonLd } from "@/components/seo/json-ld";
 import { Badge } from "@/components/ui/badge";
 import { ButtonLink } from "@/components/ui/button";
 import { Reveal } from "@/components/ui/reveal";
-import { formatDate } from "@/lib/format";
+import { createFormatters } from "@/lib/format";
 import { getSchemeRates, type SchemeRate } from "@/lib/queries";
 import { RISK_LABEL, schemesFor, INVESTMENT_KEYWORDS, STATUTORY_SCHEMES } from "@/lib/schemes";
 import { countryHref, resolveCountry } from "@/lib/countries";
@@ -46,6 +46,7 @@ export default async function InvestmentCalculatorsPage({ params }: Props) {
   const { country: code } = await params;
   const country = resolveCountry(code);
   const href = (path: string) => countryHref(country, path);
+  const { date: formatDate } = createFormatters(country);
 
   let rates: SchemeRate[] = [];
   try {

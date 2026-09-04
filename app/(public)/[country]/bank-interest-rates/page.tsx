@@ -9,7 +9,7 @@ import { Reveal } from "@/components/ui/reveal";
 import { getLenderDirectory, getRateCoverage, type RateCoverage } from "@/lib/queries";
 import { countryHref, resolveCountry } from "@/lib/countries";
 import { breadcrumbSchema, pageMetadata, rateTableSchema } from "@/lib/seo";
-import { HEADLINE_LENDERS, LOAN_TYPES, RATE_KEYWORDS, type LoanTypeId } from "@/lib/site";
+import { HEADLINE_LENDERS, loanTypesFor, RATE_KEYWORDS, type LoanTypeId } from "@/lib/site";
 
 type Props = { params: Promise<{ country: string }> };
 
@@ -18,9 +18,10 @@ export async function generateMetadata({ params }: Props) {
   const country = resolveCountry(code);
 
   return pageMetadata({
-    title: "Bank Interest Rates in India — All Loan Types Compared",
-    description:
-      "Current interest rates, processing fees and maximum tenures for home, car, personal, business, education and gold loans across Indian public banks, private banks, housing finance companies and NBFCs. Every rate dated and linked to the lender's own published page.",
+    title: `Bank Interest Rates in ${country.name} — All Loan Types Compared`,
+    description: `Current interest rates, processing fees and maximum tenures across lenders in ${country.name}, for ${loanTypesFor(country.code)
+      .map((t) => t.label.toLowerCase())
+      .join(", ")} loans. Every rate dated and linked to the lender's own published page.`,
     path: countryHref(country, "/bank-interest-rates"),
     keywords: [
       "bank interest rates India",
@@ -34,10 +35,10 @@ export async function generateMetadata({ params }: Props) {
       "NBFC interest rates India",
       "housing finance company rates",
       // Bank-name intent: "SBI interest rate", "current HDFC Bank rate", …
-      ...HEADLINE_LENDERS.flatMap((b) => [
-        `${b} interest rate`,
-        `current ${b} interest rate`,
-      ]),
+      // These are Indian institutions, so they only belong on the India page.
+      ...(country.code === "in"
+        ? HEADLINE_LENDERS.flatMap((b) => [`${b} interest rate`, `current ${b} interest rate`])
+        : []),
       ...RATE_KEYWORDS,
     ],
     country,
@@ -109,14 +110,14 @@ export default async function BankRatesPage({ params }: Props) {
           <div className="max-w-3xl">
             <Reveal>
               <h1 className="font-display text-3xl font-extrabold tracking-tight text-[var(--text)] sm:text-4xl lg:text-5xl">
-                Bank <span className="gradient-text">interest rates</span> in India
+                Bank <span className="gradient-text">interest rates</span> in{" "}
+                {country.name}
               </h1>
             </Reveal>
             <Reveal delay={90}>
               <p className="mt-4 text-base leading-relaxed text-[var(--text-secondary)] sm:text-lg">
-                Every major Indian lender in one place — public banks, private banks, housing
-                finance companies, NBFCs and small finance banks. Pick a loan type below for the
-                full rate comparison, where each figure is dated and linked to the lender&rsquo;s own
+                Lenders in {country.name} in one place. Pick a loan type below for the full rate
+                comparison, where each figure is dated and linked to the lender&rsquo;s own
                 published page so you can check it before acting.
               </p>
             </Reveal>
@@ -124,7 +125,7 @@ export default async function BankRatesPage({ params }: Props) {
 
           <Reveal delay={140}>
             <div className="mt-7 flex flex-wrap gap-2">
-              {LOAN_TYPES.map((t) => (
+              {loanTypesFor(country.code).map((t) => (
                 <Link
                   key={t.id}
                   href={href(`/bank-interest-rates/${t.rateSlug}`)}
@@ -165,7 +166,7 @@ export default async function BankRatesPage({ params }: Props) {
           </p>
           <h2>Floating rates move</h2>
           <p>
-            Most Indian home loans are linked to an external benchmark — commonly the RBI repo rate
+            {country.code === "in" ? "Most Indian home loans are linked to an external benchmark — commonly the RBI repo rate" : "Floating-rate loans are linked to an external benchmark set by the central bank or the lender"}
             — so your EMI or tenure changes when that benchmark changes. A rate captured today is a
             snapshot, not a commitment. Check the effective date on each row, and confirm on the
             lender&rsquo;s site.

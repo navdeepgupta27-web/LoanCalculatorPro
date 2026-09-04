@@ -21,16 +21,20 @@ export function CoverageNotice({
 
   const { verified, lenders, lastUpdated } = coverage;
 
+  // Written for a reader, not an operator. This used to print a shell command
+  // and an admin URL, which is fine on a laptop during setup and nonsense to
+  // someone who has just switched the site to their own country.
   if (lenders === 0) {
     return (
-      <div className="rounded-xl border border-amber-300 bg-amber-50 p-4 dark:border-amber-800 dark:bg-amber-950/40">
+      <div className="rounded-xl border border-amber-300 bg-amber-50 p-5 dark:border-amber-800 dark:bg-amber-950/40">
         <p className="text-sm font-semibold text-amber-900 dark:text-amber-200">
-          No lenders listed yet
+          We have not collected {country.name} lender rates yet
         </p>
-        <p className="mt-1 text-sm text-amber-800 dark:text-amber-300">
-          Run <code className="rounded bg-amber-100 px-1 py-0.5 text-xs dark:bg-amber-900/50">npm run db:seed</code>{" "}
-          to load the lender list, then add rates at{" "}
-          <code className="rounded bg-amber-100 px-1 py-0.5 text-xs dark:bg-amber-900/50">/admin/rates</code>.
+        <p className="mt-1.5 text-sm leading-relaxed text-amber-800 dark:text-amber-300">
+          Every rate on this site is transcribed by hand from the lender&rsquo;s own published page,
+          dated, and checked before it appears — so a market we have not worked through yet shows
+          nothing rather than an estimate. The calculators work in {country.currency} in the
+          meantime, and you can enter a rate from your own lender directly.
         </p>
       </div>
     );

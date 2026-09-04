@@ -75,7 +75,7 @@ export function PrepaymentPanel({
               active ? "bg-accent-500 text-white" : "bg-[var(--surface)] text-[var(--text-muted)]",
             )}
           >
-            ₹
+            {symbol}
           </span>
           <span className="flex flex-col">
             <span className="text-sm font-bold text-[var(--text)]">Part Payments</span>

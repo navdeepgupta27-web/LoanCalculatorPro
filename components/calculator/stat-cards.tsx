@@ -59,7 +59,7 @@ function Stat({ label, value, caption, tone = "neutral", format = "currency", he
 }
 
 export function StatCards({ result }: { result: LoanResult }) {
-  const { tenure: formatTenure } = useFormat();
+  const { tenure: formatTenure, symbol } = useFormat();
 
   const { emi, actual, feesTotal, totalCost, interestToPrincipalRatio } = result;
 
@@ -83,10 +83,10 @@ export function StatCards({ result }: { result: LoanResult }) {
         label="Total Interest"
         value={actual.totalInterest}
         tone="interest"
-        caption={`₹${interestToPrincipalRatio.toFixed(2)} interest per ₹1 borrowed`}
+        caption={`${symbol}${interestToPrincipalRatio.toFixed(2)} interest per ${symbol}1 borrowed`}
       />
       <Stat
-        label="Fees + GST"
+        label="Fees + tax"
         value={feesTotal}
         caption="Deducted upfront by the lender"
       />

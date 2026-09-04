@@ -142,4 +142,7 @@ export const COLUMN_ADDITIONS: string[] = [
   `ALTER TABLE banks ADD COLUMN country TEXT NOT NULL DEFAULT 'in'`,
   `ALTER TABLE rates ADD COLUMN country TEXT NOT NULL DEFAULT 'in'`,
   `ALTER TABLE scheme_rates ADD COLUMN country TEXT NOT NULL DEFAULT 'in'`,
+  // Guides are written for one market — the existing ones quote rupee figures
+  // in their titles — so the homepage strip can show only the relevant set.
+  `ALTER TABLE posts ADD COLUMN country TEXT NOT NULL DEFAULT 'in'`,
 ];
