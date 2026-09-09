@@ -3,7 +3,8 @@
 import type { ReactNode } from "react";
 
 import { CountUp } from "@/components/ui/count-up";
-import { useFormat } from "@/components/country/country-provider";
+import { useCountry, useFormat } from "@/components/country/country-provider";
+import { instalmentWords } from "@/lib/naming";
 import type { LoanResult } from "@/lib/loan";
 import { cn } from "@/lib/utils";
 
@@ -60,6 +61,7 @@ function Stat({ label, value, caption, tone = "neutral", format = "currency", he
 
 export function StatCards({ result }: { result: LoanResult }) {
   const { tenure: formatTenure, symbol } = useFormat();
+  const words = instalmentWords(useCountry().code);
 
   const { emi, actual, feesTotal, totalCost, interestToPrincipalRatio } = result;
 
@@ -68,7 +70,7 @@ export function StatCards({ result }: { result: LoanResult }) {
     // quarter-width card cannot hold a full crore figure.
     <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
       <Stat
-        label="Monthly EMI"
+        label={`Monthly ${words.noun}`}
         value={emi}
         tone="brand"
         hero

@@ -28,11 +28,30 @@ export interface Country {
   region: "Africa" | "Americas" | "Asia" | "Europe" | "Oceania";
   /** Loan types, schemes and lender data researched for this market. */
   curated?: boolean;
+  /**
+   * Offered publicly: listed in the selector, in the sitemap, in hreflang, and
+   * allowed into search.
+   *
+   * Separate from `curated` on purpose. Curated means the products and schemes
+   * are configured; launched means there is real, verified lender data behind
+   * them and the market is worth showing a stranger.
+   *
+   * This exists because getting it wrong cost an AdSense approval. Opening the
+   * selector to 206 countries produced roughly 5,150 pages that differed only
+   * by a currency symbol, over a single market's worth of data, and the review
+   * came back "Low value content" — correctly. A calculator that works in your
+   * currency is useful; two hundred copies of it with empty rate tables is
+   * padding, and a reviewer following the selector sees the padding first.
+   *
+   * To open a market: verify its lender rates in the admin, then set this true.
+   * One flag, one market at a time, each with something behind it.
+   */
+  launched?: boolean;
 }
 
 export const COUNTRIES: Country[] = [
   /* ---- Asia ---- */
-  { code: "in", name: "India", currency: "INR", region: "Asia", curated: true },
+  { code: "in", name: "India", currency: "INR", region: "Asia", curated: true, launched: true },
   { code: "sg", name: "Singapore", currency: "SGD", region: "Asia", curated: true },
   { code: "ae", name: "United Arab Emirates", currency: "AED", region: "Asia", curated: true },
   { code: "af", name: "Afghanistan", currency: "AFN", region: "Asia" },
@@ -262,6 +281,19 @@ export const COUNTRY_MAP: Record<string, Country> = Object.fromEntries(
 /** Markets whose loan and scheme data has been researched. */
 export const CURATED_COUNTRIES = COUNTRIES.filter((c) => c.curated);
 
+/**
+ * Markets offered publicly. Everything user-facing counts from this list.
+ *
+ * A country outside it still resolves if someone has the URL — nothing 404s
+ * for a bookmark — but it is unlinked, unlisted and noindex, so it adds no
+ * crawlable surface.
+ */
+export const LIVE_COUNTRIES = COUNTRIES.filter((c) => c.launched);
+
+export function isLive(code: string): boolean {
+  return COUNTRY_MAP[code]?.launched === true;
+}
+
 export function countryByCode(code: string | undefined | null): Country | undefined {
   if (!code) return undefined;
   return COUNTRY_MAP[code.toLowerCase()];
@@ -300,10 +332,12 @@ export function countryHref(country: Country, path = "/"): string {
 /** Countries grouped for the selector, curated markets pulled to the top. */
 export function groupedCountries() {
   const regions: Country["region"][] = ["Asia", "Europe", "Americas", "Africa", "Oceania"];
-  return regions.map((region) => ({
-    region,
-    countries: COUNTRIES.filter((c) => c.region === region).sort((a, b) =>
-      a.name.localeCompare(b.name),
-    ),
-  }));
+  return regions
+    .map((region) => ({
+      region,
+      countries: LIVE_COUNTRIES.filter((c) => c.region === region).sort((a, b) =>
+        a.name.localeCompare(b.name),
+      ),
+    }))
+    .filter((g) => g.countries.length > 0);
 }

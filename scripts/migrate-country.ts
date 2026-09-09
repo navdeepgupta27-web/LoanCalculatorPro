@@ -18,6 +18,9 @@
  */
 import { all, db, run, scalar } from "../lib/db";
 
+/** Every table whose rows belong to one market. */
+const TABLES = ["banks", "rates", "scheme_rates", "posts"] as const;
+
 async function columnExists(table: string, column: string): Promise<boolean> {
   const cols = await all<{ name: string }>(`PRAGMA table_info(${table})`);
   return cols.some((c) => c.name === column);
@@ -28,7 +31,7 @@ async function main() {
   console.log("Connected.\n");
 
   /* ---- 1. columns ---- */
-  for (const table of ["banks", "rates", "scheme_rates"]) {
+  for (const table of TABLES) {
     if (await columnExists(table, "country")) {
       console.log(`  ${table}.country already present`);
     } else {
@@ -39,7 +42,7 @@ async function main() {
 
   /* ---- 2. backfill ---- */
   console.log("");
-  for (const table of ["banks", "rates", "scheme_rates"]) {
+  for (const table of TABLES) {
     const res = await run(
       `UPDATE ${table} SET country = 'in' WHERE country IS NULL OR country = ''`,
     );
@@ -62,7 +65,7 @@ async function main() {
 
   /* ---- 4. report ---- */
   console.log("");
-  for (const table of ["banks", "rates", "scheme_rates"]) {
+  for (const table of TABLES) {
     const rows = await all<{ country: string; n: number }>(
       `SELECT country, COUNT(*) AS n FROM ${table} GROUP BY country ORDER BY n DESC`,
     );

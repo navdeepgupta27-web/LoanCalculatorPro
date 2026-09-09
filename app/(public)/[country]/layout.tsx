@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import type { ReactNode } from "react";
 
 import { CountryProvider } from "@/components/country/country-provider";
-import { COUNTRIES, countryByCode } from "@/lib/countries";
+import { countryByCode, LIVE_COUNTRIES } from "@/lib/countries";
 
 /**
  * Validates the country segment and puts it in context for everything below.
@@ -18,7 +18,7 @@ export function generateStaticParams() {
   // Only the researched markets are prerendered. The rest render on demand and
   // are then cached — 206 countries prebuilt would be a long build for pages
   // almost nobody asks for.
-  return COUNTRIES.filter((c) => c.curated).map((c) => ({ country: c.code }));
+  return LIVE_COUNTRIES.map((c) => ({ country: c.code }));
 }
 
 export default async function CountryLayout({

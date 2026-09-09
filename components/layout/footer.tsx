@@ -4,6 +4,7 @@ import Link from "next/link";
 
 import { useCountryFromPath } from "@/components/country/country-provider";
 import { countryHref } from "@/lib/countries";
+import { loanCalculatorTitle } from "@/lib/naming";
 import { schemesFor } from "@/lib/schemes";
 import { LEGAL_NAV, loanTypesFor, SITE } from "@/lib/site";
 
@@ -69,7 +70,7 @@ export function Footer() {
                     href={href(`/${t.slug}`)}
                     className="text-sm text-[var(--text-secondary)] transition-colors hover:text-brand-600 dark:hover:text-brand-300"
                   >
-                    {t.label} EMI Calculator
+                    {loanCalculatorTitle(country.code, t.label)}
                   </Link>
                 </li>
               ))}

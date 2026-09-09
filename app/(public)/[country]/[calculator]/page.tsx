@@ -21,7 +21,8 @@ import { SchemePage } from "@/components/investment/scheme-page";
 import { getSchemeRate } from "@/lib/queries";
 import { INVESTMENT_KEYWORDS, schemesFor, schemeBySlug } from "@/lib/schemes";
 import { countryHref, resolveCountry } from "@/lib/countries";
-import { loanTypesFor, loanTypeAvailable, loanTypeBySlug } from "@/lib/site";
+import { instalmentWords, loanCalculatorTitle, usesEmi } from "@/lib/naming";
+import { loanTypesFor, localiseLoanType, loanTypeAvailable, loanTypeBySlug } from "@/lib/site";
 
 /**
  * Every calculator landing page, served from the site root — so
@@ -83,8 +84,10 @@ export async function generateMetadata({ params }: Props) {
     });
   }
 
-  const type = loanTypeBySlug(calculator);
-  if (!type) return {};
+  const raw = loanTypeBySlug(calculator);
+  if (!raw) return {};
+  const type = localiseLoanType(country.code, raw);
+  const words = instalmentWords(country.code);
 
   // Returning {} here would inherit the root layout's metadata, which says
   // index — so the "not offered here" page was inviting itself into search.
@@ -98,8 +101,8 @@ export async function generateMetadata({ params }: Props) {
   }
 
   return pageMetadata({
-    title: `${type.label} EMI Calculator — Part Payment & Interest Savings`,
-    description: `Calculate your ${type.label.toLowerCase()} EMI with the reducing-balance method, model one-off and recurring part-payments, compare cutting the tenure against cutting the EMI, and download a full month-by-month amortisation schedule. Free and private.`,
+    title: `${loanCalculatorTitle(country.code, type.label)} — Part Payment & Interest Savings`,
+    description: `Calculate your ${type.label.toLowerCase()} ${words.sentence} with the reducing-balance method, model one-off and recurring part-payments, compare cutting the term against cutting the ${words.sentence}, and download a full month-by-month amortisation schedule. Free and private.`,
     path: countryHref(country, `/${type.slug}`),
     country,
     countryPath: `/${type.slug}`,
@@ -151,8 +154,10 @@ export default async function CalculatorPage({ params }: Props) {
     );
   }
 
-  const type = loanTypeBySlug(calculator);
-  if (!type) notFound();
+  const raw = loanTypeBySlug(calculator);
+  if (!raw) notFound();
+  const type = localiseLoanType(country.code, raw);
+  const words = instalmentWords(country.code);
 
   if (!loanTypeAvailable(country.code, type)) {
     return (
@@ -176,7 +181,7 @@ export default async function CalculatorPage({ params }: Props) {
           faqSchema(faqs),
           breadcrumbSchema([
             { name: "Home", path: countryHref(country) },
-            { name: `${type.label} EMI Calculator`, path: countryHref(country, `/${type.slug}`) },
+            { name: loanCalculatorTitle(country.code, type.label), path: countryHref(country, `/${type.slug}`) },
           ]),
         ]}
       />
@@ -192,7 +197,9 @@ export default async function CalculatorPage({ params }: Props) {
                 </Link>
               </li>
               <li aria-hidden="true">/</li>
-              <li className="text-[var(--text-secondary)]">{type.label} EMI Calculator</li>
+              <li className="text-[var(--text-secondary)]">
+                {loanCalculatorTitle(country.code, type.label)}
+              </li>
             </ol>
           </nav>
 
@@ -200,7 +207,7 @@ export default async function CalculatorPage({ params }: Props) {
             <Reveal>
               <span className="inline-flex items-center gap-2 text-4xl">{type.emoji}</span>
               <h1 className="mt-3 font-display text-3xl font-extrabold tracking-tight text-[var(--text)] sm:text-4xl lg:text-5xl">
-                {type.label} <span className="gradient-text">EMI Calculator</span>
+                {type.label} <span className="gradient-text">{usesEmi(country.code) ? "EMI Calculator" : "Calculator"}</span>
               </h1>
             </Reveal>
             <Reveal delay={90}>
@@ -301,7 +308,7 @@ export default async function CalculatorPage({ params }: Props) {
           faqs={faqs}
           eyebrow={type.label}
           title={`${type.label} questions, answered`}
-          description={`What people ask most about ${type.label.toLowerCase()} EMIs, prepayment and total cost.`}
+          description={`What people ask most about ${type.label.toLowerCase()}s, prepayment and total cost.`}
         />
       </section>
 
@@ -309,7 +316,7 @@ export default async function CalculatorPage({ params }: Props) {
         <SectionHeading
           align="left"
           title="A note on accuracy"
-          description={`${country.code === "in" ? "This calculator applies the standard reducing-balance formula that Indian lenders use, and includes processing fee and GST in the total cost." : "This calculator applies the standard reducing-balance formula, and includes any processing fee you enter in the total cost."} It does not model late-payment penalties, insurance bundled into the loan, foreclosure charges, or any moratorium period. Your lender's sanction letter is the authoritative statement of your EMI and charges — treat these figures as a well-informed estimate for planning, not a quotation.`}
+          description={`${country.code === "in" ? "This calculator applies the standard reducing-balance formula that Indian lenders use, and includes processing fee and GST in the total cost." : "This calculator applies the standard reducing-balance formula, and includes any processing fee you enter in the total cost."} It does not model late-payment penalties, insurance bundled into the loan, foreclosure charges, or any moratorium period. Your lender's offer letter is the authoritative statement of your ${words.sentence} and charges — treat these figures as a well-informed estimate for planning, not a quotation.`}
         />
       </section>
     </>

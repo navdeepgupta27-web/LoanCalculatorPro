@@ -13,7 +13,7 @@ import { ButtonLink } from "@/components/ui/button";
 import { Reveal } from "@/components/ui/reveal";
 import { GENERAL_FAQS } from "@/lib/faqs";
 import { getPublishedPosts } from "@/lib/queries";
-import { INVESTMENT_KEYWORDS, SCHEMES } from "@/lib/schemes";
+import { INVESTMENT_KEYWORDS, schemesFor } from "@/lib/schemes";
 import {
   breadcrumbSchema,
   calculatorListSchema,
@@ -23,18 +23,23 @@ import {
   softwareApplicationSchema,
 } from "@/lib/seo";
 import { countryHref, resolveCountry } from "@/lib/countries";
-import { CORE_KEYWORDS, INTENT_KEYWORDS, LOAN_TYPES } from "@/lib/site";
+import { instalmentWords } from "@/lib/naming";
+import { CORE_KEYWORDS, INTENT_KEYWORDS, loanTypesFor } from "@/lib/site";
 
 type Props = { params: Promise<{ country: string }> };
 
 export async function generateMetadata({ params }: Props) {
   const { country: code } = await params;
   const country = resolveCountry(code);
+  const words = instalmentWords(country.code);
 
   return pageMetadata({
-    title: `Loan EMI & Investment Calculators — Home Loan, Personal Loan, SIP, PPF`,
+    title: `Loan ${words.title} & Investment Calculators — ${loanTypesFor(country.code)
+      .slice(0, 2)
+      .map((t) => t.label)
+      .join(", ")}, ${schemesFor(country.code)[0]?.shortName ?? "SIP"}`,
     description:
-      "Free calculators for both sides of your money. Home, personal, car, business, education and gold loan EMIs with part-payment savings and bank comparison — plus SIP, lumpsum, FD, RD, PPF, Sukanya Samriddhi, NPS and EPF with CAGR, XIRR and absolute return.",
+      `Free calculators for both sides of your money. ${loanTypesFor(country.code).map((t) => t.label).join(", ")} payments with part-payment savings and lender comparison — plus ${schemesFor(country.code).map((s) => s.shortName).join(", ")} with CAGR, XIRR and absolute return.`,
     path: countryHref(country),
     keywords: [...CORE_KEYWORDS, ...INTENT_KEYWORDS, ...INVESTMENT_KEYWORDS],
     country,
@@ -57,6 +62,7 @@ export default async function HomePage({ params }: Props) {
   const country = resolveCountry(code);
   const href = (path: string) => countryHref(country, path);
   const inIndia = country.code === "in";
+  const words = instalmentWords(country.code);
 
   let posts = [] as Awaited<ReturnType<typeof getPublishedPosts>>;
   try {
@@ -70,8 +76,8 @@ export default async function HomePage({ params }: Props) {
       <JsonLd
         data={[
           softwareApplicationSchema(),
-          calculatorListSchema(),
-          siteNavigationSchema(),
+          calculatorListSchema(country.code),
+          siteNavigationSchema(country.code),
           faqSchema(GENERAL_FAQS),
           breadcrumbSchema([{ name: "Home", path: countryHref(country) }]),
         ]}
@@ -92,7 +98,7 @@ export default async function HomePage({ params }: Props) {
 
             <Reveal delay={80}>
               <p className="mx-auto mt-5 max-w-2xl text-base leading-relaxed text-[var(--text-secondary)] sm:text-lg">
-                Calculate your EMI, then find out what a part-payment actually saves you — in
+                Calculate your {words.sentence}, then find out what a part-payment actually saves you — in
                 rupees and in years. Compare lenders on total cost rather than headline rate, and
                 take away a full month-by-month schedule. Then do the same for the money you are
                 saving, with{" "}
@@ -152,7 +158,7 @@ export default async function HomePage({ params }: Props) {
         <SectionHeading
           eyebrow="Why Loan Calculator Pro"
           title="Built for the questions other calculators ignore"
-          description="Most EMI tools stop at the monthly instalment. The decisions that actually save money — when to prepay, what the bank should do with it, and which lender is genuinely cheaper — need more than that."
+          description="Most loan calculators stop at the monthly instalment. The decisions that actually save money — when to prepay, what the bank should do with it, and which lender is genuinely cheaper — need more than that."
         />
         <div className="mt-10">
           <FeatureGrid />
@@ -203,21 +209,21 @@ export default async function HomePage({ params }: Props) {
         </Reveal>
       </section>
 
-      {/* ---------------- How EMI works ---------------- */}
+      {/* ---------------- How the instalment works ---------------- */}
       <section className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
         <div className="grid items-center gap-10 lg:grid-cols-2">
           <div>
             <SectionHeading
               align="left"
               eyebrow="The maths"
-              title="How your EMI is actually calculated"
+              title={`How your ${words.sentence} is actually calculated`}
               description="Lenders use the reducing-balance method. Interest each month is charged only on what you still owe, so the interest share of every instalment falls as the balance drops."
             />
 
             <Reveal delay={100}>
               <div className="mt-6 rounded-xl border border-[var(--border)] bg-[var(--bg-subtle)] p-5">
                 <p className="text-center font-mono text-base font-semibold text-[var(--text)] sm:text-lg">
-                  EMI = P × r × (1+r)<sup>n</sup> ÷ ((1+r)<sup>n</sup> − 1)
+                  {words.abbr} = P × r × (1+r)<sup>n</sup> ÷ ((1+r)<sup>n</sup> − 1)
                 </p>
                 <dl className="mt-4 grid gap-2 text-sm sm:grid-cols-3">
                   {[
@@ -238,7 +244,7 @@ export default async function HomePage({ params }: Props) {
               <p className="mt-5 text-[0.9375rem] leading-relaxed text-[var(--text-secondary)]">
                 The consequence is the part most borrowers miss: on a 20-year loan at 8.5%,{" "}
                 <strong className="text-[var(--text)]">81% of your first year&rsquo;s payments</strong>{" "}
-                are interest, and principal does not overtake interest within a single EMI until
+                are interest, and principal does not overtake interest within a single instalment until
                 month 143. That is why a lump sum in year two is worth roughly three and a half
                 times the same amount in year twelve — and why the year-by-year chart above is worth
                 a look before you decide when to prepay.
@@ -260,7 +266,7 @@ export default async function HomePage({ params }: Props) {
                   ? [
                       { label: "You borrow", value: "₹50,00,000", tone: "text-[var(--color-principal)]" },
                       { label: "You repay in interest", value: "₹54,13,879", tone: "text-[var(--color-interest)]" },
-                      { label: "Monthly EMI", value: "₹43,391", tone: "text-[var(--text)]" },
+                      { label: `Monthly ${words.abbr}`, value: "₹43,391", tone: "text-[var(--text)]" },
                       { label: "Total repayment", value: "₹1,04,13,879", tone: "text-[var(--text)]" },
                     ]
                   : [
@@ -324,7 +330,7 @@ export default async function HomePage({ params }: Props) {
                   the lender&rsquo;s own published page, so you can verify before you act.
                 </p>
                 <div className="mt-5 flex flex-wrap gap-2">
-                  {LOAN_TYPES.slice(0, 4).map((t) => (
+                  {loanTypesFor(country.code).slice(0, 4).map((t) => (
                     <Link
                       key={t.id}
                       href={href(`/bank-interest-rates/${t.rateSlug}`)}
@@ -361,7 +367,7 @@ export default async function HomePage({ params }: Props) {
                   {[
                     "Ranked by total cost, not headline rate",
                     "Processing fee and GST included in the ranking",
-                    "Side-by-side EMI, interest and payoff date",
+                    `Side-by-side ${words.sentence}, interest and payoff date`,
                     "Export the whole comparison to CSV",
                   ].map((point) => (
                     <li key={point} className="flex items-start gap-2">
@@ -410,7 +416,7 @@ export default async function HomePage({ params }: Props) {
         <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
           <FaqSection
             faqs={GENERAL_FAQS}
-            description="The questions we get asked most about EMIs, part-payments and comparing lenders."
+            description={`The questions we get asked most about ${words.sentence}s, part-payments and comparing lenders.`}
           />
         </div>
       </section>

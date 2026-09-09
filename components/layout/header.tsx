@@ -7,9 +7,8 @@ import { useEffect, useState } from "react";
 import { CountrySelector } from "@/components/country/country-selector";
 import { useCountryFromPath } from "@/components/country/country-provider";
 import { countryHref } from "@/lib/countries";
-import { INDIA_ONLY_SLUGS } from "@/lib/schemes";
 import { LOAN_TYPES } from "@/lib/site";
-import { NAV_MENUS, PRIMARY_NAV } from "@/lib/site";
+import { navMenus, PRIMARY_NAV, type NavItem } from "@/lib/site";
 import { cn } from "@/lib/utils";
 
 import { Logo } from "./logo";
@@ -23,17 +22,9 @@ export function Header() {
   const href = (path: string) => countryHref(country, path);
   // The Indian statutory schemes 404 outside India, so they must not be offered
   // in the menu there either.
-  const unavailable = new Set(
-    LOAN_TYPES.filter((t) => t.availableIn && !t.availableIn.includes(country.code)).map(
-      (t) => t.slug,
-    ),
-  );
-  const menuItems = <T extends { href: string }>(items: readonly T[]) =>
-    items.filter((i) => {
-      const slug = i.href.replace(/^\//, "");
-      if (unavailable.has(slug)) return false;
-      return country.code === "in" || !INDIA_ONLY_SLUGS.has(slug);
-    });
+  // navMenus already drops products the market does not offer and applies the
+  // local product names, so there is nothing left to filter here.
+  const menus = navMenus(country.code);
 
   const [scrolled, setScrolled] = useState(false);
   // Which dropdown is open, by its label — only one at a time.
@@ -90,9 +81,9 @@ export function Header() {
           <Logo />
 
           <nav aria-label="Primary" className="hidden items-center gap-0.5 lg:flex">
-            {NAV_MENUS.map((menu) => {
+            {menus.map((menu) => {
               const open = openMenu === menu.label;
-              const items = menuItems(menu.items);
+              const items: NavItem[] = menu.items;
               return (
                 <div
                   key={menu.label}
@@ -252,7 +243,7 @@ export function Header() {
             menuOpen ? "translate-y-0 opacity-100" : "-translate-y-4 opacity-0",
           )}
         >
-          {NAV_MENUS.map((menu, index) => (
+          {menus.map((menu, index) => (
             <div key={menu.label}>
               <p
                 className={cn(
@@ -263,7 +254,7 @@ export function Header() {
                 {menu.label}
               </p>
               <div className="grid grid-cols-2 gap-1.5">
-                {menuItems(menu.items).map((item) => (
+                {menu.items.map((item) => (
                   <Link
                     key={item.href}
                     href={href(item.href)}

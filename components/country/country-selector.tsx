@@ -3,7 +3,12 @@
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 
-import { COUNTRIES, countryByCode, groupedCountries, type Country } from "@/lib/countries";
+import {
+  countryByCode,
+  groupedCountries,
+  LIVE_COUNTRIES,
+  type Country,
+} from "@/lib/countries";
 import { cn } from "@/lib/utils";
 
 import { useCountryFromPath } from "./country-provider";
@@ -62,7 +67,7 @@ export function CountrySelector({ className }: { className?: string }) {
   const results = useMemo(() => {
     const q = query.trim().toLowerCase();
     if (!q) return null;
-    return COUNTRIES.filter(
+    return LIVE_COUNTRIES.filter(
       (c) =>
         c.name.toLowerCase().includes(q) ||
         c.code.includes(q) ||
@@ -108,6 +113,11 @@ export function CountrySelector({ className }: { className?: string }) {
       <span className="shrink-0 text-[0.7rem] text-[var(--text-muted)]">{c.currency}</span>
     </button>
   );
+
+  // A dropdown offering one choice is just a decoration that invites a click.
+  // Markets open one at a time as their lender data is verified, so until a
+  // second one is live there is nothing to switch between.
+  if (LIVE_COUNTRIES.length < 2) return null;
 
   return (
     <div ref={boxRef} className={cn("relative", className)}>

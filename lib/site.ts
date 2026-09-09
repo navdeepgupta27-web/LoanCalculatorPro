@@ -4,7 +4,8 @@
  * data and the footer is defined exactly once here.
  */
 
-import { INVESTMENT_KEYWORDS, SCHEMES } from "./schemes";
+import { instalmentWords, loanCalculatorTitle, loanName } from "./naming";
+import { INVESTMENT_KEYWORDS, schemesFor } from "./schemes";
 
 export const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ||
@@ -371,7 +372,29 @@ export const LOAN_TYPE_MAP: Record<LoanTypeId, LoanTypeConfig> = Object.fromEntr
  * localising separately.
  */
 export function loanTypesFor(countryCode: string): LoanTypeConfig[] {
-  return LOAN_TYPES.filter((t) => !t.availableIn || t.availableIn.includes(countryCode));
+  return LOAN_TYPES.filter((t) => !t.availableIn || t.availableIn.includes(countryCode)).map((t) =>
+    localiseLoanType(countryCode, t),
+  );
+}
+
+/**
+ * Returns the config under this market's name for the product.
+ *
+ * Applied here rather than at each call site so that everything downstream —
+ * the header, the footer, the grids, the page titles — reads `label` and gets
+ * the local word without knowing localisation exists. A US visitor sees
+ * "Mortgage" where an Indian one sees "Home Loan", from the same component.
+ *
+ * Slug and rateSlug are deliberately untouched: they are URLs, already indexed,
+ * and renaming them is a separate decision from renaming the product.
+ */
+export function localiseLoanType(countryCode: string, type: LoanTypeConfig): LoanTypeConfig {
+  const { label, short } = loanName(countryCode, type.id, {
+    label: type.label,
+    short: type.shortLabel,
+  });
+  if (label === type.label && short === type.shortLabel) return type;
+  return { ...type, label, shortLabel: short ?? type.shortLabel };
 }
 
 export function loanTypeAvailable(countryCode: string, type: LoanTypeConfig): boolean {
@@ -416,32 +439,42 @@ export interface NavMenu {
  * investment calculators were linked from one nav item and their own hub, and
  * nothing else on the site pointed at them.
  */
-export const NAV_MENUS: NavMenu[] = [
-  {
-    label: "Loan Calculators",
-    href: "/",
-    items: LOAN_TYPES.map((t) => ({
-      label: `${t.label} EMI Calculator`,
-      shortLabel: t.shortLabel,
-      href: `/${t.slug}`,
-      emoji: t.emoji,
-      caption: "EMI calculator",
-    })),
-    footerLink: { label: "Compare bank loans", href: "/compare-loans" },
-  },
-  {
-    label: "Investment Calculators",
-    href: "/investment-calculators",
-    items: SCHEMES.map((s) => ({
-      label: s.name,
-      shortLabel: s.shortName,
-      href: `/${s.slug}`,
-      emoji: s.emoji,
-      caption: s.rateIsStatutory ? "Government scheme" : "Projection tool",
-    })),
-    footerLink: { label: "Compare investments", href: "/compare-investments" },
-  },
-];
+/**
+ * Built per country rather than once at module load, so the menu carries the
+ * local product names and the local word for a monthly payment — "Mortgage
+ * Calculator" in the United States, "Home Loan EMI Calculator" in India — and
+ * omits products that market does not offer.
+ */
+export function navMenus(countryCode: string): NavMenu[] {
+  const words = instalmentWords(countryCode);
+
+  return [
+    {
+      label: "Loan Calculators",
+      href: "/",
+      items: loanTypesFor(countryCode).map((t) => ({
+        label: loanCalculatorTitle(countryCode, t.label),
+        shortLabel: t.shortLabel,
+        href: `/${t.slug}`,
+        emoji: t.emoji,
+        caption: `${words.sentence} calculator`,
+      })),
+      footerLink: { label: "Compare bank loans", href: "/compare-loans" },
+    },
+    {
+      label: "Investment Calculators",
+      href: "/investment-calculators",
+      items: schemesFor(countryCode).map((s) => ({
+        label: s.name,
+        shortLabel: s.shortName,
+        href: `/${s.slug}`,
+        emoji: s.emoji,
+        caption: s.rateIsStatutory ? "Government scheme" : "Projection tool",
+      })),
+      footerLink: { label: "Compare investments", href: "/compare-investments" },
+    },
+  ];
+}
 
 /**
  * Flat header items, shown after the two dropdowns.

@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import { ButtonLink } from "@/components/ui/button";
 import { countryHref, type Country } from "@/lib/countries";
+import { loanCalculatorTitle } from "@/lib/naming";
 import { schemesFor } from "@/lib/schemes";
 import { loanTypesFor } from "@/lib/site";
 
@@ -58,7 +59,7 @@ export function NotAvailableHere({
                   href={countryHref(country, `/${t.slug}`)}
                   className="text-sm text-[var(--text-secondary)] transition-colors hover:text-brand-600 dark:hover:text-brand-300"
                 >
-                  {t.label} EMI Calculator
+                  {loanCalculatorTitle(country.code, t.label)}
                 </Link>
               </li>
             ))}

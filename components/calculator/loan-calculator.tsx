@@ -12,7 +12,8 @@ import { Field, Input } from "@/components/ui/field";
 import { Segmented } from "@/components/ui/segmented";
 import { SliderField } from "@/components/ui/slider-field";
 import { useToast } from "@/components/ui/toast";
-import { useFormat } from "@/components/country/country-provider";
+import { useCountry, useFormat } from "@/components/country/country-provider";
+import { instalmentWords } from "@/lib/naming";
 import {
   calculateLoan,
   downloadCsv,
@@ -22,7 +23,7 @@ import {
   type PrepaymentMode,
   type RecurringPrepayment,
 } from "@/lib/loan";
-import { LOAN_TYPES, LOAN_TYPE_MAP, type LoanTypeId } from "@/lib/site";
+import { loanTypesFor, localiseLoanType, LOAN_TYPE_MAP, type LoanTypeId } from "@/lib/site";
 import { cn } from "@/lib/utils";
 
 import { PrepaymentPanel } from "./prepayment-panel";
@@ -139,6 +140,9 @@ export function LoanCalculator({
   showTypeSelector?: boolean;
   className?: string;
 }) {
+  const country = useCountry();
+  const words = instalmentWords(country.code);
+  const types = loanTypesFor(country.code);
   const { symbol, compact: formatCompact, currency: formatCurrency, percent: formatPercent, tenure: formatTenure } = useFormat();
 
   const { toast } = useToast();
@@ -181,7 +185,8 @@ export function LoanCalculator({
     setState((prev) => ({ ...prev, ...next }));
   }, []);
 
-  const config = LOAN_TYPE_MAP[state.loanType];
+  // Localised so the body copy uses the market's name for the product.
+  const config = localiseLoanType(country.code, LOAN_TYPE_MAP[state.loanType]);
 
   const result: LoanResult = useMemo(
     () =>
@@ -258,7 +263,7 @@ export function LoanCalculator({
     <div className={cn("w-full", className)}>
       {showTypeSelector && (
         <div className="mb-6 flex flex-wrap justify-center gap-2 no-print">
-          {LOAN_TYPES.map((t) => (
+          {types.map((t) => (
             <button
               key={t.id}
               type="button"
@@ -523,7 +528,7 @@ export function LoanCalculator({
         <div className="glass fixed inset-x-0 bottom-0 z-30 flex items-center justify-between gap-3 border-t border-[var(--border)] px-4 py-2.5 lg:hidden no-print">
           <div>
             <p className="text-[0.65rem] font-bold uppercase tracking-wider text-[var(--text-muted)]">
-              Monthly EMI
+              Monthly {words.noun}
             </p>
             <p className="font-display text-lg font-extrabold text-brand-600 tnum dark:text-brand-300">
               {formatCurrency(result.emi)}

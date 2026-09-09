@@ -21,14 +21,18 @@ export const COUNTRY_COOKIE = "lcp-country";
 const GEO_HEADERS = ["x-vercel-ip-country", "cf-ipcountry", "x-country-code"];
 
 export async function preferredCountry(): Promise<Country> {
+  // Only ever lands someone on a market that is actually offered. Sending a
+  // German visitor to /de because of their IP would drop them on a page with
+  // no lender data, which is both a poor first impression and the kind of
+  // empty page that got the site turned down for ads.
   const store = await cookies();
   const chosen = countryByCode(store.get(COUNTRY_COOKIE)?.value);
-  if (chosen) return chosen;
+  if (chosen?.launched) return chosen;
 
   const head = await headers();
   for (const name of GEO_HEADERS) {
     const detected = countryByCode(head.get(name));
-    if (detected) return detected;
+    if (detected?.launched) return detected;
   }
 
   return COUNTRY_MAP[DEFAULT_COUNTRY];

@@ -1,7 +1,7 @@
 import type { MetadataRoute } from "next";
 
 import { getPublishedPosts } from "@/lib/queries";
-import { CURATED_COUNTRIES } from "@/lib/countries";
+import { LIVE_COUNTRIES } from "@/lib/countries";
 import { schemesFor } from "@/lib/schemes";
 import { loanTypesFor, SITE_URL } from "@/lib/site";
 
@@ -32,7 +32,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
    * pages carry a noindex, so listing them here would be asking Google to
    * crawl what it has been told to ignore.
    */
-  const countryRoutes: MetadataRoute.Sitemap = CURATED_COUNTRIES.flatMap((c) => [
+  const countryRoutes: MetadataRoute.Sitemap = LIVE_COUNTRIES.flatMap((c) => [
     { url: `${SITE_URL}/${c.code}`, lastModified: now, changeFrequency: "daily" as const, priority: 1 },
     ...loanTypesFor(c.code).map((t) => ({
       url: `${SITE_URL}/${c.code}/${t.slug}`,

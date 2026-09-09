@@ -18,6 +18,8 @@
  * misleading, so those columns are never optional.
  */
 
+import { schemeName } from "./naming";
+
 export type SchemeId =
   | "sip"
   | "lumpsum"
@@ -369,7 +371,27 @@ export const INDIA_ONLY_SLUGS = new Set(SCHEMES.filter((s) => s.indiaOnly).map((
  * tax commentary differ, and the tax commentary is withheld rather than guessed.
  */
 export function schemesFor(countryCode: string): SchemeConfig[] {
-  return countryCode === "in" ? SCHEMES : SCHEMES.filter((s) => !s.indiaOnly);
+  const available = countryCode === "in" ? SCHEMES : SCHEMES.filter((s) => !s.indiaOnly);
+  return available.map((s) => localiseScheme(countryCode, s));
+}
+
+/**
+ * The same instrument under the name this market uses.
+ *
+ * A fixed deposit is a CD in the United States and a GIC in Canada; the
+ * arithmetic is identical, which is why one calculator serves all three, but
+ * only the local name makes it findable. The slug stays put — it is a URL.
+ */
+export function localiseScheme(countryCode: string, scheme: SchemeConfig): SchemeConfig {
+  // `name` carries a " Calculator" suffix; the overrides are product names, so
+  // the suffix is stripped for the lookup and put back afterwards.
+  const base = scheme.name.replace(/ Calculator$/, "");
+  const { label, short } = schemeName(countryCode, scheme.id, {
+    label: base,
+    short: scheme.shortName,
+  });
+  if (label === base && short === scheme.shortName) return scheme;
+  return { ...scheme, name: `${label} Calculator`, shortName: short ?? scheme.shortName };
 }
 
 export const RISK_LABEL: Record<SchemeRisk, string> = {

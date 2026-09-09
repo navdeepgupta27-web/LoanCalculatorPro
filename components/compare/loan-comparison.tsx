@@ -10,14 +10,15 @@ import { Field, Input, Select } from "@/components/ui/field";
 import { Segmented } from "@/components/ui/segmented";
 import { SliderField } from "@/components/ui/slider-field";
 import { useToast } from "@/components/ui/toast";
-import { useFormat } from "@/components/country/country-provider";
+import { useCountry, useFormat } from "@/components/country/country-provider";
+import { instalmentWords } from "@/lib/naming";
 import {
   compareLoans,
   comparisonToCsv,
   downloadCsv,
   type CompareCandidate,
 } from "@/lib/loan";
-import { LOAN_TYPES, LOAN_TYPE_MAP, type LoanTypeId } from "@/lib/site";
+import { loanTypesFor, localiseLoanType, LOAN_TYPE_MAP, type LoanTypeId } from "@/lib/site";
 import { cn } from "@/lib/utils";
 
 /** A lender's rate row, passed in from the database for one-tap prefill. */
@@ -59,6 +60,9 @@ function seedLenders(type: LoanTypeId): Lender[] {
 }
 
 export function LoanComparison({ rateOptions = [] }: { rateOptions?: RateOption[] }) {
+  const country = useCountry();
+  const words = instalmentWords(country.code);
+  const types = loanTypesFor(country.code);
   const { symbol, compact: formatCompact, currency: formatCurrency, percent: formatPercent, rate: formatRate, tenure: formatTenure } = useFormat();
 
   const { toast } = useToast();
@@ -67,7 +71,7 @@ export function LoanComparison({ rateOptions = [] }: { rateOptions?: RateOption[
   const [lenders, setLenders] = useState<Lender[]>(() => seedLenders("home"));
   const [view, setView] = useState<"table" | "chart">("table");
 
-  const config = LOAN_TYPE_MAP[loanType];
+  const config = localiseLoanType(country.code, LOAN_TYPE_MAP[loanType]);
   const availableRates = useMemo(
     () => rateOptions.filter((r) => r.loanType === loanType),
     [rateOptions, loanType],
@@ -154,7 +158,7 @@ export function LoanComparison({ rateOptions = [] }: { rateOptions?: RateOption[
         </p>
 
         <div className="mt-4 flex flex-wrap gap-2">
-          {LOAN_TYPES.map((t) => (
+          {types.map((t) => (
             <button
               key={t.id}
               type="button"
@@ -313,7 +317,7 @@ export function LoanComparison({ rateOptions = [] }: { rateOptions?: RateOption[
                 {row && !row.result.error && (
                   <div className="mt-1 space-y-1.5 border-t border-[var(--border)] pt-3">
                     <div className="flex items-baseline justify-between">
-                      <span className="text-xs text-[var(--text-muted)]">EMI</span>
+                      <span className="text-xs text-[var(--text-muted)]">{words.abbr}</span>
                       <span className="font-display text-lg font-extrabold text-[var(--text)] tnum">
                         {formatCurrency(row.result.emi)}
                       </span>
@@ -408,7 +412,7 @@ export function LoanComparison({ rateOptions = [] }: { rateOptions?: RateOption[
                   {[
                     { label: "Interest rate", get: (r: (typeof valid)[number]) => formatPercent(r.input.rate) },
                     { label: "Tenure", get: (r: (typeof valid)[number]) => formatTenure(r.result.actual.tenureMonths) },
-                    { label: "Monthly EMI", get: (r: (typeof valid)[number]) => formatCurrency(r.result.emi), strong: true },
+                    { label: `Monthly ${words.noun}`, get: (r: (typeof valid)[number]) => formatCurrency(r.result.emi), strong: true },
                     { label: "Total interest", get: (r: (typeof valid)[number]) => formatCurrency(r.result.actual.totalInterest) },
                     { label: "Processing fee", get: (r: (typeof valid)[number]) => formatCurrency(r.result.processingFee) },
                     { label: "GST on fee", get: (r: (typeof valid)[number]) => formatCurrency(r.result.gst) },
