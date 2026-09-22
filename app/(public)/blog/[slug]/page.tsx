@@ -10,6 +10,7 @@ import { formatDate } from "@/lib/format";
 import { renderMarkdown } from "@/lib/markdown";
 import { getPostBySlug, getPublishedPosts, getRelatedPosts } from "@/lib/queries";
 import { articleSchema, breadcrumbSchema, pageMetadata } from "@/lib/seo";
+import { AUTHOR } from "@/lib/site";
 import { parseTags } from "@/lib/types";
 import { readingTime } from "@/lib/utils";
 
@@ -176,7 +177,38 @@ export default async function BlogPostPage({ params }: Props) {
 
           <AdInArticle className="mt-10" />
 
-          <div className="mt-10 rounded-xl border border-[var(--border)] bg-[var(--bg-subtle)] p-5">
+          {/*
+            Who wrote this, what they do, and what they are not qualified to
+            tell you. On financial writing that last part carries as much
+            weight as the first two — a named engineer who says plainly that he
+            is not an adviser is a better signal than an unattributed article.
+          */}
+          <div className="mt-10 flex flex-col gap-4 rounded-[var(--radius-card)] border border-[var(--border)] bg-[var(--surface)] p-5 sm:flex-row sm:items-start">
+            <span className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-gradient-to-br from-brand-500 to-accent-500 text-base font-extrabold text-white">
+              {AUTHOR.name.charAt(0)}
+            </span>
+            <div className="min-w-0">
+              <p className="font-display text-sm font-bold text-[var(--text)]">
+                Written by {AUTHOR.name}
+              </p>
+              <p className="text-xs text-[var(--text-muted)]">
+                {AUTHOR.role} · {AUTHOR.location}
+              </p>
+              <p className="mt-2 text-sm leading-relaxed text-[var(--text-secondary)]">
+                {AUTHOR.short} He is not a financial adviser and holds no advisory licence — this
+                is written from building the systems behind these products, not from selling them.{" "}
+                <Link
+                  href="/about"
+                  className="font-semibold text-brand-600 transition-colors hover:text-brand-500 dark:text-brand-300"
+                >
+                  More about the site
+                </Link>
+                .
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-6 rounded-xl border border-[var(--border)] bg-[var(--bg-subtle)] p-5">
             <p className="text-xs leading-relaxed text-[var(--text-muted)]">
               <strong className="text-[var(--text-secondary)]">A reminder:</strong> this article is
               general information about how loans work in India, not personalised financial advice.

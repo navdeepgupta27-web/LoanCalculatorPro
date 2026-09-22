@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { DEFAULT_COUNTRY, LIVE_COUNTRIES, type Country } from "./countries";
 import { schemesFor } from "./schemes";
 import { loanCalculatorTitle } from "./naming";
-import { ALL_KEYWORDS, loanTypesFor, SITE, SITE_URL, SOCIAL_LINKS } from "./site";
+import { ALL_KEYWORDS, AUTHOR, loanTypesFor, SITE, SITE_URL, SOCIAL_LINKS } from "./site";
 
 /* ------------------------------------------------------------------ */
 /* Metadata builder                                                    */
@@ -136,6 +136,42 @@ export function pageMetadata({
 /* Structured data (JSON-LD)                                           */
 /* ------------------------------------------------------------------ */
 
+/**
+ * The person behind the site, as a linkable entity.
+ *
+ * Given an @id, both the Organization and every article can point at the same
+ * Person rather than repeating a name string. `knowsAbout` states the domain
+ * experience and `jobTitle` states what he actually is — an engineer. Claiming
+ * a financial credential here to strengthen an E-E-A-T signal would be a
+ * fabricated qualification on a page giving people money figures.
+ */
+export function personSchema() {
+  return {
+    "@context": "https://schema.org",
+    "@type": "Person",
+    "@id": `${SITE_URL}/#author`,
+    name: AUTHOR.name,
+    jobTitle: AUTHOR.role,
+    description: AUTHOR.bio,
+    email: AUTHOR.email,
+    url: `${SITE_URL}/about`,
+    address: {
+      "@type": "PostalAddress",
+      addressLocality: "Bangalore",
+      addressRegion: "Karnataka",
+      addressCountry: "IN",
+    },
+    knowsAbout: [
+      "Loan amortisation",
+      "Banking technology",
+      "Insurance systems",
+      "Real estate technology",
+      "Investment platforms",
+    ],
+    worksFor: { "@id": `${SITE_URL}/#organization` },
+  };
+}
+
 export function organizationSchema() {
   return {
     "@context": "https://schema.org",
@@ -152,7 +188,8 @@ export function organizationSchema() {
     },
     description: SITE.description,
     email: SITE.email,
-    foundingLocation: { "@type": "Place", name: "India" },
+    founder: { "@id": `${SITE_URL}/#author` },
+    foundingLocation: { "@type": "Place", name: "Bangalore, India" },
     areaServed: { "@type": "Country", name: "India" },
     sameAs: SOCIAL_LINKS.map((s) => s.href),
   };
@@ -262,7 +299,10 @@ export function articleSchema(input: {
     mainEntityOfPage: { "@type": "WebPage", "@id": url },
     datePublished: input.published ?? input.modified,
     dateModified: input.modified,
-    author: { "@type": "Organization", name: input.author, url: SITE_URL },
+    // Points at the Person entity rather than naming the site. An article
+    // authored by an organisation is a weaker signal than one authored by a
+    // named individual, and on financial content that gap matters.
+    author: { "@id": `${SITE_URL}/#author` },
     publisher: { "@id": `${SITE_URL}/#organization` },
     image: `${SITE_URL}/blog/${input.slug}/opengraph-image`,
     inLanguage: SITE.language,

@@ -4,7 +4,7 @@ import { ArticleShell } from "@/components/sections/article-shell";
 import { JsonLd } from "@/components/seo/json-ld";
 import { ButtonLink } from "@/components/ui/button";
 import { breadcrumbSchema, pageMetadata } from "@/lib/seo";
-import { SITE } from "@/lib/site";
+import { AUTHOR, SITE } from "@/lib/site";
 
 export const metadata = pageMetadata({
   title: "About Loan Calculator Pro",
@@ -34,6 +34,22 @@ export default function AboutPage() {
         lede="A loan calculator built to answer the questions that actually change what you pay — not just the monthly instalment."
       >
         <div className="prose-lcp">
+          <h2>Who builds this</h2>
+          <p>
+            <strong>{AUTHOR.name}</strong> — a software engineer in {AUTHOR.location}, with twelve
+            years in IT spent largely on systems for banking, insurance, real estate and investment
+            businesses. That is where this calculator came from: enough time around lending and
+            investment products to know which numbers actually decide an outcome, and how often the
+            ones on display are not those.
+          </p>
+          <p>
+            Worth stating plainly, because it changes how you should read everything here: he is an
+            engineer, not a financial adviser, and holds no advisory licence. What this site offers
+            is arithmetic done carefully and shown in full, with its assumptions on the page. It
+            does not offer a recommendation, and it never will. For a decision of any size, talk to
+            a SEBI-registered investment adviser or a qualified chartered accountant.
+          </p>
+
           <h2>Why this exists</h2>
           <p>
             Most EMI calculators stop at one number. You put in an amount, a rate and a tenure, and

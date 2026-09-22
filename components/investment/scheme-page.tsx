@@ -1,6 +1,10 @@
 import Link from "next/link";
 
 import { AdLeaderboard } from "@/components/ads/ad-slot";
+import { FaqSection } from "@/components/sections/faq-section";
+import { JsonLd } from "@/components/seo/json-ld";
+import { schemeFaqsFor } from "@/lib/faqs";
+import { faqSchema } from "@/lib/seo";
 import { InvestmentCalculator } from "@/components/investment/investment-calculator";
 import { Badge } from "@/components/ui/badge";
 import { ButtonLink } from "@/components/ui/button";
@@ -35,6 +39,7 @@ export function SchemePage({
 }) {
   const { currency: formatCurrency, date: formatDate } = createFormatters(country);
   const others = SCHEMES.filter((s) => s.id !== scheme.id);
+  const faqs = schemeFaqsFor(scheme.id);
   const storedRate = rate?.rate ?? null;
 
   // `guarantee` and `taxation` describe Indian arrangements — DICGC cover,
@@ -64,6 +69,8 @@ export function SchemePage({
 
   return (
     <>
+      {faqs.length > 0 && <JsonLd data={faqSchema(faqs)} />}
+
       <section className="relative overflow-hidden border-b border-[var(--border)]">
         <div className="mesh-bg" aria-hidden="true" />
         <div className="relative mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
@@ -264,6 +271,19 @@ export function SchemePage({
           </ButtonLink>
         </div>
       </section>
+
+      {faqs.length > 0 && (
+        <section className="border-t border-[var(--border)] bg-[var(--bg-elevated)]">
+          <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
+            <FaqSection
+              faqs={faqs}
+              eyebrow={scheme.shortName}
+              title={`${scheme.shortName} questions, answered`}
+              description={`How the arithmetic on this page works, what the projection assumes, and where the output is most often misread.`}
+            />
+          </div>
+        </section>
+      )}
 
       <section className="mx-auto max-w-3xl px-4 pb-14 sm:px-6">
         <div className="rounded-xl border border-[var(--border)] bg-[var(--bg-subtle)] p-5">

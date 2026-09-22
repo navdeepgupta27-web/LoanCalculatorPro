@@ -12,8 +12,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date();
 
   // Shared pages, one copy for the whole site.
+  //
+  // The bare root is deliberately absent: it redirects to the visitor's market
+  // rather than serving content, and a sitemap listing a redirect earns a
+  // "Page with redirect" in Search Console instead of an indexed page. The
+  // destination it sends people to is listed on its own below.
   const staticRoutes: MetadataRoute.Sitemap = [
-    { url: SITE_URL, lastModified: now, changeFrequency: "daily", priority: 1 },
     { url: `${SITE_URL}/blog`, lastModified: now, changeFrequency: "daily", priority: 0.8 },
     { url: `${SITE_URL}/faq`, lastModified: now, changeFrequency: "monthly", priority: 0.7 },
     { url: `${SITE_URL}/feedback`, lastModified: now, changeFrequency: "monthly", priority: 0.5 },

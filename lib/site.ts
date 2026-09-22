@@ -31,6 +31,37 @@ export const SITE = {
 } as const;
 
 /* ------------------------------------------------------------------ */
+/* Who runs this                                                       */
+/* ------------------------------------------------------------------ */
+
+/**
+ * The person behind the site.
+ *
+ * An anonymous site giving people numbers to make money decisions on is a
+ * trust problem, and Google treats it as one. Naming someone fixes that only
+ * if the description is honest, so this one is careful about what it does not
+ * claim: twelve years building software for banks, insurers, property and
+ * investment firms is real domain exposure, and it is not a financial
+ * qualification. Saying so is a stronger signal than implying otherwise —
+ * every page already tells the reader this is a calculator and not advice,
+ * and the byline needs to agree with that rather than undercut it.
+ */
+export const AUTHOR = {
+  name: "Navdeep Gupta",
+  /** Shown under posts and on the About page. */
+  role: "Software engineer",
+  location: "Bangalore, India",
+  /** One line, for bylines and the author card. */
+  short:
+    "Software engineer in Bangalore, twelve years building systems for banking, insurance, real estate and investment firms.",
+  /** Fuller version for the About page and Person structured data. */
+  bio:
+    "Navdeep Gupta is a software engineer based in Bangalore with twelve years in IT, most of it spent building systems for banking, insurance, real estate and investment businesses. That work is where this calculator came from: enough time around lending and investment products to know which numbers actually decide an outcome, and how often the ones on display are not those. He is an engineer, not a financial adviser, and nothing on this site is advice.",
+  /** Deliberately the site address, not a personal or employer inbox. */
+  email: "hello@loancalculatorpro.in",
+} as const;
+
+/* ------------------------------------------------------------------ */
 /* Social profiles                                                     */
 /* ------------------------------------------------------------------ */
 

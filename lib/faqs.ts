@@ -1,3 +1,4 @@
+import type { SchemeId } from "./schemes";
 import type { LoanTypeId } from "./site";
 
 export interface Faq {
@@ -121,4 +122,257 @@ export const LOAN_TYPE_FAQS: Record<LoanTypeId, Faq[]> = {
 
 export function faqsFor(loanType: LoanTypeId): Faq[] {
   return [...LOAN_TYPE_FAQS[loanType], ...GENERAL_FAQS.slice(0, 5)];
+}
+
+/* ------------------------------------------------------------------ */
+/* Investment and savings schemes                                      */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Questions for each savings and investment calculator.
+ *
+ * These exist because the scheme pages had a calculator and almost no prose
+ * around it, while the loan pages carried FAQs and an accuracy note — roughly
+ * half the readable content for the same kind of page. A tool with a thin
+ * wrapper is what "low value content" describes, and these pages were the
+ * thinnest on the site.
+ *
+ * Deliberately no rates, limits or thresholds in the copy. Those are set by
+ * government and change; they are stored with a source and an effective date
+ * and rendered from the database. What is written here is mechanism, which
+ * does not move: how the arithmetic works, what the projection assumes, and
+ * where people misread the output.
+ *
+ * Tax answers describe character rather than rates, and say so — the Finance
+ * Act rewrites the detail most years.
+ */
+export const SCHEME_FAQS: Record<SchemeId, Faq[]> = {
+  sip: [
+    {
+      question: "What does a SIP projection actually assume?",
+      answer:
+        "That every instalment is paid on time, that none is missed, and that the return you entered is earned steadily, every month, for the whole term. Real markets do none of that. A fund returning an average of 12% over ten years will have had years of 30% and years of −20%, and the order those arrive in changes what you end up with. Treat the figure as the arithmetic consequence of your assumption, not a forecast.",
+    },
+    {
+      question: "Is the projected return guaranteed?",
+      answer:
+        "No. A SIP is a way of buying into a mutual fund on a schedule, not a product with a promised rate. Nothing about the instalment structure guarantees anything — the money is in the market, and the value can be lower than the amount you put in, including on the day you need it. This is the single most important difference between this calculator and the PPF or fixed-deposit ones, where the rate is contractual or set by government.",
+    },
+    {
+      question: "Why does this page show XIRR rather than CAGR?",
+      answer:
+        "CAGR describes one sum held for one period. A SIP is dozens of separate sums, each held for a different length of time — the first instalment compounds for the full term, the last for a month. XIRR is the rate that makes all of those cash flows, on their actual dates, add up to the final value. Quoting CAGR on a SIP overstates the return, because it credits the whole corpus with the full term.",
+    },
+    {
+      question: "Does investing monthly protect me from a market fall?",
+      answer:
+        "It changes your average purchase price, not your exposure. Buying on a schedule means you buy more units when prices are low and fewer when they are high, which smooths the price you paid in. It does nothing about the value of what you already hold: a portfolio built over ten years falls with the market in year ten, and by then the accumulated balance is far larger than any single instalment.",
+    },
+    {
+      question: "What happens if I stop or pause the instalments?",
+      answer:
+        "Stopping ends the contributions; it does not sell what you hold, which stays invested and keeps rising or falling with the fund. The lasting cost is compounding you no longer get — an instalment missed early in the term had the most time to grow, so it is worth more than the same amount missed near the end. Model it by shortening the term and comparing the two maturity figures.",
+    },
+  ],
+
+  lumpsum: [
+    {
+      question: "How is the maturity value worked out?",
+      answer:
+        "One sum, compounded annually at the rate you enter, for the number of years you enter — the standard future-value calculation. Because there is a single investment held for a single period, the growth rate is directly meaningful, which is why this page reports CAGR while the SIP page reports XIRR.",
+    },
+    {
+      question: "Is a lump sum better than investing the same amount monthly?",
+      answer:
+        "The arithmetic favours the lump sum, because every rupee is exposed for the full term rather than being phased in. That is not the same as it being the better decision: it also means the entire amount is exposed to whatever the market does immediately after you invest. The comparison tool puts both side by side so you can see the size of the difference on your own numbers, and it deliberately does not name a winner.",
+    },
+    {
+      question: "What does the projection leave out?",
+      answer:
+        "Expense ratios, exit loads, transaction costs and tax. A fund's published return is usually net of its expense ratio but nothing else. If you want a figure closer to what reaches your bank account, reduce the rate you enter to account for costs, and treat the result as pre-tax.",
+    },
+    {
+      question: "How much does the assumed rate change the answer?",
+      answer:
+        "Far more than most people expect, and more the longer the term. Compounding is exponential, so a one-point difference in the assumed rate is a small gap over three years and a large one over twenty. It is worth running the calculator twice — once at the rate you hope for and once two or three points lower — and treating the lower figure as the planning number.",
+    },
+    {
+      question: "What is absolute return and why show it alongside CAGR?",
+      answer:
+        "Absolute return is simply how much more you have than you put in, as a percentage, with no reference to time. It answers \"how much did this grow\", while CAGR answers \"how fast\". A 60% absolute return is good over three years and poor over twenty, and showing only one of the two numbers is how people end up comparing investments that are not comparable.",
+    },
+  ],
+
+  fd: [
+    {
+      question: "How is the maturity amount calculated?",
+      answer:
+        "By compounding the deposit at the contracted rate for the full term. The default here is quarterly compounding, which is the common convention for cumulative deposits — interest is added to the balance every quarter and then earns interest itself. A deposit that pays interest out monthly or quarterly instead of reinvesting it will mature at a lower figure, because nothing is compounding.",
+    },
+    {
+      question: "Does compounding frequency change the result much?",
+      answer:
+        "A little, and predictably. More frequent compounding on the same nominal rate produces a slightly higher maturity value, because interest starts earning sooner. The gap between quarterly and annual compounding is real but small next to the gap between two different rates, so it is rarely the thing worth optimising for.",
+    },
+    {
+      question: "Is the rate fixed for the whole term?",
+      answer:
+        "That is the defining feature of the product: the rate is agreed on the day you open the deposit and does not move afterwards, whatever happens to rates in the market. That protects you if rates fall and works against you if they rise. Renewal is a fresh decision at whatever rate is being offered then.",
+    },
+    {
+      question: "How is the interest taxed in India?",
+      answer:
+        "Interest on a bank fixed deposit is added to your income and taxed at your slab rate, and banks deduct tax at source once the interest crosses an annual threshold. This calculator reports the pre-tax maturity value, so your actual return is lower — how much lower depends on your slab. Thresholds and rules change with each Finance Act, so check the current year's position.",
+    },
+    {
+      question: "What happens if I break the deposit before maturity?",
+      answer:
+        "Most banks pay interest at the rate that applied to the shorter period the money was actually held for, and many apply a penalty on top. The effect is that an early exit can return meaningfully less than the projection on this page, which assumes the deposit runs its full term. If there is a real chance you will need the money, that is worth weighing before locking a long tenure for a slightly better rate.",
+    },
+  ],
+
+  rd: [
+    {
+      question: "How does a recurring deposit differ from a fixed deposit?",
+      answer:
+        "A fixed deposit is one sum placed once. A recurring deposit is a fixed amount paid in every month, each instalment earning interest from the date it lands. The rate is contractual in both cases, but because your later instalments are only invested for a few months, the return on the total amount you paid in is lower than the headline rate suggests.",
+    },
+    {
+      question: "Why is my effective return lower than the advertised rate?",
+      answer:
+        "Because not all of your money is invested for the full term. The first instalment earns interest for the whole period; the last earns it for one month. The advertised rate is correct — it is applied to each instalment for however long that instalment is held — but the return measured against your total contribution is necessarily lower. This is the same reason a SIP reports XIRR rather than a simple growth rate.",
+    },
+    {
+      question: "What happens if I miss a monthly instalment?",
+      answer:
+        "Banks generally charge a small penalty and, if instalments are missed repeatedly, may close the account early and pay a reduced rate. The projection here assumes every instalment is paid on schedule, so a patchy record produces a lower maturity value than the figure shown.",
+    },
+    {
+      question: "How is recurring deposit interest taxed in India?",
+      answer:
+        "The same way as a fixed deposit: interest is added to your income and taxed at your slab rate, with tax deducted at source above an annual threshold. The figure on this page is before tax. The specifics change with the Finance Act, so confirm the current year's rules rather than relying on last year's.",
+    },
+    {
+      question: "Recurring deposit or SIP?",
+      answer:
+        "They answer different questions. A recurring deposit gives a contractual rate and a known maturity value, and the bank carries the risk. A SIP puts the same monthly amount into a market where the outcome is unknown in both directions. The comparison tool shows both on the same amount and term, with risk, lock-in and guarantee stated alongside, precisely because the maturity figures alone are not comparable.",
+    },
+  ],
+
+  ppf: [
+    {
+      question: "How is PPF interest calculated?",
+      answer:
+        "On the lowest balance in the account between the fifth day and the last day of each month, credited once at the end of the financial year. The practical consequence is that a deposit made on or before the fifth earns interest for that month, and the same deposit made on the sixth does not. Over fifteen years, consistently depositing early in the month is worth a noticeable amount for no extra money.",
+    },
+    {
+      question: "Who sets the rate, and how often does it change?",
+      answer:
+        "The government notifies small-savings rates quarterly, so the rate is not fixed for the life of the account the way a bank deposit rate is — it applies to the quarter and can be revised. This calculator projects forward at a single rate, which is a simplification: the real account will have earned several different rates across its term. The rate shown on this page is recorded with the source it was read from and the date it was checked.",
+    },
+    {
+      question: "What happens at the end of fifteen years?",
+      answer:
+        "The account matures and you can withdraw the whole balance, or extend in blocks of five years — with or without continuing to contribute. An extended account keeps earning the notified rate, which is why some people leave a matured PPF running rather than closing it. Extension has to be requested within a window after maturity.",
+    },
+    {
+      question: "Can I take money out before maturity?",
+      answer:
+        "Only within limits. Partial withdrawals become available after a number of years and are capped by a formula based on the earlier balance, and loans against the balance are possible in the early years. A full exit before maturity is allowed only in specific circumstances and carries an interest penalty. Treat the money as locked for planning purposes.",
+    },
+    {
+      question: "How is PPF taxed?",
+      answer:
+        "PPF has historically been exempt at all three stages in India — the deposit qualifies for deduction, the interest is not taxed as it accrues, and the maturity amount is not taxed on withdrawal. That treatment is set by legislation and can be amended, and the deduction depends on which tax regime you are under. Confirm the current year's position before relying on it.",
+    },
+  ],
+
+  ssy: [
+    {
+      question: "Who can open a Sukanya Samriddhi account?",
+      answer:
+        "A parent or legal guardian, for a girl child below a specified age, with a limit on how many accounts a family can hold. The account is in the child's name and she operates it herself once she reaches adulthood. Eligibility rules are set by the scheme and are worth confirming at the post office or bank before you plan around it.",
+    },
+    {
+      question: "Why does the calculator show a gap between deposits and maturity?",
+      answer:
+        "Because the scheme has one. Deposits are made for the first fifteen years from opening, but the account matures at twenty-one years. In those final years no further deposits are required and the balance simply keeps earning the notified rate. That gap is modelled here, which is why the maturity figure is meaningfully higher than a fifteen-year projection would suggest.",
+    },
+    {
+      question: "Can money be withdrawn before maturity?",
+      answer:
+        "A partial withdrawal is allowed once the girl reaches a set age or stage of education, capped as a share of the previous year's balance, and the account can be closed early on marriage after a specified age. Outside those cases the balance stays locked, which is the trade for the rate.",
+    },
+    {
+      question: "What happens if a year's deposit is missed?",
+      answer:
+        "The account is treated as in default and has to be regularised with a small penalty per missed year, paid along with the minimum deposit for each. Until it is regularised the account can lose its entitlement to the notified rate. The projection here assumes an unbroken deposit record.",
+    },
+    {
+      question: "How is it taxed?",
+      answer:
+        "Sukanya Samriddhi has historically had the same exempt treatment as PPF at all three stages in India, with the deposit qualifying for deduction under the applicable section. As with any statutory scheme, this is set by legislation, depends on your tax regime, and can change — check the current year's rules.",
+    },
+  ],
+
+  nps: [
+    {
+      question: "What does the corpus projection assume?",
+      answer:
+        "That you contribute the amount you entered, every year, until retirement, and that the blended portfolio returns the rate you entered throughout. NPS invests across equity and debt in proportions you choose, so the realistic return depends heavily on that mix — an equity-heavy allocation has a wider range of outcomes in both directions than a debt-heavy one.",
+    },
+    {
+      question: "Can I take the whole corpus as cash at retirement?",
+      answer:
+        "No. A minimum share of the corpus must be used to buy an annuity that pays a pension; the rest can be withdrawn as a lump sum. That is the defining constraint of the product and the main thing that separates it from an ordinary retirement portfolio. The calculator shows the split so the lump sum is not mistaken for the whole balance.",
+    },
+    {
+      question: "Why doesn't the calculator show my monthly pension?",
+      answer:
+        "Because it would be a guess. The pension depends on annuity rates on the day you retire, decades from now, and on which annuity variant you choose — whether it continues to a spouse, whether the purchase price is returned. Projecting a monthly figure would mean inventing a rate for a future market, so the calculator stops at the corpus and the split.",
+    },
+    {
+      question: "What does the choice of fund and allocation change?",
+      answer:
+        "The distribution of outcomes, not just the average. A higher equity share raises the expected corpus and widens the range around it; the lifecycle options reduce equity automatically as you approach retirement, which narrows the range late on when there is no time to recover from a fall. Running the calculator at two or three different rates shows how much that choice matters over your remaining term.",
+    },
+    {
+      question: "How is NPS taxed in India?",
+      answer:
+        "Contributions attract deductions, including one available over and above the general limit; at exit the lump-sum portion has been tax-free within limits while the annuity income is taxed as income in the year it is received. The detail depends on your tax regime and is revisited in Finance Acts, so treat this as the shape of the treatment and confirm the current rules.",
+    },
+  ],
+
+  epf: [
+    {
+      question: "How does an EPF balance build up?",
+      answer:
+        "From three things: your contribution, your employer's contribution, and interest on the accumulated balance. Part of the employer's share is directed to the linked pension scheme rather than the provident fund itself, so the amount landing in your EPF is smaller than the headline percentages imply. The rate is declared annually rather than fixed for the term.",
+    },
+    {
+      question: "Does the projection account for salary increases?",
+      answer:
+        "Only if you tell it to. Contributions are a percentage of salary, so a career of rising salaries produces a much larger balance than a flat projection suggests. Entering an annual growth assumption gives a more realistic figure — and comparing it against a no-growth run shows how much of the eventual balance comes from raises rather than returns.",
+    },
+    {
+      question: "What happens to the balance when I change jobs?",
+      answer:
+        "It should be transferred to the new employer's account against the same universal account number, which keeps the balance and the service history intact. Withdrawing instead of transferring resets the compounding that makes the later years worth so much — the balance in the final years of a career is doing most of the work, and it can only get there uninterrupted.",
+    },
+    {
+      question: "When can I withdraw?",
+      answer:
+        "The full balance is normally available at retirement or after a continuous period without employment. Partial withdrawals are permitted for specified purposes — housing, medical treatment, education, marriage — each with its own conditions on service length and amount. The projection assumes nothing is withdrawn along the way.",
+    },
+    {
+      question: "How is EPF taxed?",
+      answer:
+        "EPF has historically been exempt at all three stages in India, subject to conditions — notably a minimum period of continuous service, and a cap above which interest on large employee contributions becomes taxable. Withdrawing before completing that service period can make the amount taxable. The conditions change, so confirm the current year's rules before planning a withdrawal.",
+    },
+  ],
+};
+
+/** FAQs for a scheme page, general questions appended as on the loan pages. */
+export function schemeFaqsFor(id: SchemeId): Faq[] {
+  return SCHEME_FAQS[id] ?? [];
 }

@@ -11,8 +11,8 @@ import { themeInitScript } from "@/components/layout/theme";
 import { InstallPrompt } from "@/components/pwa/install-prompt";
 import { JsonLd } from "@/components/seo/json-ld";
 import { ToastProvider } from "@/components/ui/toast";
-import { organizationSchema, websiteSchema } from "@/lib/seo";
-import { ALL_KEYWORDS, SITE, SITE_URL } from "@/lib/site";
+import { organizationSchema, personSchema, websiteSchema } from "@/lib/seo";
+import { ALL_KEYWORDS, AUTHOR, SITE, SITE_URL } from "@/lib/site";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -38,8 +38,8 @@ export const metadata: Metadata = {
   description: SITE.description,
   keywords: ALL_KEYWORDS,
   applicationName: SITE.name,
-  authors: [{ name: SITE.name, url: SITE_URL }],
-  creator: SITE.name,
+  authors: [{ name: AUTHOR.name, url: `${SITE_URL}/about` }],
+  creator: AUTHOR.name,
   publisher: SITE.name,
   category: "finance",
   // Installed on an iPhone, the app runs without Safari's chrome. "black"
@@ -137,7 +137,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         */}
         <Analytics />
 
-        <JsonLd data={[organizationSchema(), websiteSchema()]} />
+        <JsonLd data={[organizationSchema(), websiteSchema(), personSchema()]} />
 
         {/*
           Google AdSense — the publisher id carried over from the original page.

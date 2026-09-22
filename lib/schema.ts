@@ -47,7 +47,7 @@ export const SCHEMA_STATEMENTS: string[] = [
      content         TEXT    NOT NULL,
      cover_variant   TEXT    NOT NULL DEFAULT 'indigo',
      tags            TEXT,
-     author          TEXT    NOT NULL DEFAULT 'Loan Calculator Pro',
+     author          TEXT    NOT NULL DEFAULT 'Navdeep Gupta',
      status          TEXT    NOT NULL DEFAULT 'draft',
      seo_title       TEXT,
      seo_description TEXT,
