@@ -376,3 +376,48 @@ export const SCHEME_FAQS: Record<SchemeId, Faq[]> = {
 export function schemeFaqsFor(id: SchemeId): Faq[] {
   return SCHEME_FAQS[id] ?? [];
 }
+
+/* ------------------------------------------------------------------ */
+/* Bank rate pages                                                     */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Questions for the per-product rate tables.
+ *
+ * These pages were a table and a paragraph — around 870 words, most of it the
+ * table markup — which made them the thinnest indexable pages on the site once
+ * the scheme pages were filled out. They also answer a narrower question than
+ * a reader arrives with: someone looking up rates wants to know why the number
+ * they are quoted will differ from the number on the page, and a table cannot
+ * say that.
+ *
+ * Written per product so the copy names the right thing, and carrying no
+ * figures at all — every rate on these pages comes from the database with a
+ * source and a date behind it.
+ */
+export function rateFaqsFor(label: string): Faq[] {
+  const product = label.toLowerCase();
+
+  return [
+    {
+      question: `Why is the rate I am quoted different from the rate listed here?`,
+      answer: `Because the figures here are the published starting points, and what a lender actually offers you is set by your own file. Credit score does most of the work, followed by income and how stable it looks, the size of the loan against the value of what is being bought, whether you are salaried or self-employed, and whether you already bank there. The lowest advertised rate is generally reserved for the strongest applications, so treat the numbers on this page as the floor of a range rather than a quote.`,
+    },
+    {
+      question: `What does "floating rate" mean for a ${product}?`,
+      answer: `That the rate is tied to an external benchmark and moves when the benchmark moves. In India most retail loans are linked to the repo rate, with the lender adding a spread on top that stays fixed for your loan. When the central bank changes the repo rate, your rate follows, usually at the next reset date — which means your instalment or your remaining term changes without you doing anything. A fixed rate does not move, and normally starts higher in exchange.`,
+    },
+    {
+      question: `Is the lowest rate on this table the cheapest ${product}?`,
+      answer: `Not necessarily, and this is the most common mistake. A lender charging slightly more in interest but far less in processing fee can be cheaper over a short term, because the fee is paid once and upfront while the rate difference accrues over the life of the loan. The comparison tool exists for exactly this — it ranks offers on total money out of your pocket, with the fee and tax included, rather than on the headline rate.`,
+    },
+    {
+      question: `How often do these rates change, and how current is this page?`,
+      answer: `Floating rates move with the benchmark, so they can change several times a year, and lenders also revise their spreads and promotional offers independently. Every row here carries the date it was transcribed and a link to the lender's own page. Check that date: if it is old, the page it came from is the authority, not this one. Nothing is shown here until it has been read on the lender's own site, which is also why rows are missing rather than estimated.`,
+    },
+    {
+      question: `Why do some lenders have no rate listed?`,
+      answer: `Because it has not been transcribed yet. Every figure on this site is read by hand from the lender's own published page and recorded with that URL and a date before it appears. Lenders who publish their rates only inside a PDF, or behind a login, or as a formula rather than a number, take longer. Leaving a gap is deliberate — an estimate or a figure lifted from a comparison site would look like data and would not be.`,
+    },
+  ];
+}

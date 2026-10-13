@@ -2,6 +2,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { NotAvailableHere } from "@/components/country/not-available";
+import { FaqSection } from "@/components/sections/faq-section";
+import { rateFaqsFor } from "@/lib/faqs";
 
 import { AdLeaderboard } from "@/components/ads/ad-slot";
 import { CoverageNotice } from "@/components/rates/coverage-notice";
@@ -11,7 +13,7 @@ import { ButtonLink } from "@/components/ui/button";
 import { Reveal } from "@/components/ui/reveal";
 import { getRateCoverage, getRatesForLoanType, type RateCoverage } from "@/lib/queries";
 import { countryHref, resolveCountry } from "@/lib/countries";
-import { breadcrumbSchema, pageMetadata, rateTableSchema } from "@/lib/seo";
+import { breadcrumbSchema, faqSchema, pageMetadata, rateTableSchema } from "@/lib/seo";
 import { loanTypesFor, RATE_KEYWORDS, bankRateKeywords, loanTypeAvailable, loanTypeByRateSlug } from "@/lib/site";
 import type { RateWithBank } from "@/lib/types";
 
@@ -36,6 +38,15 @@ export function generateStaticParams({ params }: { params: { country: string } }
   return loanTypesFor(params.country).map((t) => ({ loanType: t.rateSlug }));
 }
 
+/**
+ * A rate page is a comparison, and a comparison needs something to compare.
+ * Below this many published lenders the page still renders for anyone who
+ * lands on it, but is kept out of search — offering Google a "compare rates
+ * across lenders" page carrying one row is how a site ends up labelled low
+ * value content, which this one was, twice.
+ */
+const MIN_RATES_TO_INDEX = 3;
+
 type Props = { params: Promise<{ country: string; loanType: string }> };
 
 export async function generateMetadata({ params }: Props) {
@@ -53,8 +64,11 @@ export async function generateMetadata({ params }: Props) {
     });
   }
 
+  const published = await getRatesForLoanType(country.code, type.id).catch(() => []);
+
   return pageMetadata({
     title: `${type.label} Interest Rates — All Banks Compared`,
+    noIndex: published.length < MIN_RATES_TO_INDEX,
     description: `Compare ${type.label.toLowerCase()} interest rates, processing fees and maximum tenures across lenders in ${country.name}. Each rate is dated and linked to the lender's own published page.`,
     path: countryHref(country, `/bank-interest-rates/${type.rateSlug}`),
     country,
@@ -82,6 +96,8 @@ export default async function LoanTypeRatesPage({ params }: Props) {
   const type = loanTypeByRateSlug(loanType);
   if (!type) notFound();
 
+  const rateFaqs = rateFaqsFor(type.label);
+
   if (!loanTypeAvailable(country.code, type)) {
     return (
       <NotAvailableHere
@@ -102,7 +118,6 @@ export default async function LoanTypeRatesPage({ params }: Props) {
   };
 
   try {
-    // Every lender is listed, with or without a published rate for this type.
     [rates, coverage] = await Promise.all([
       getRatesForLoanType(country.code, type.id),
       getRateCoverage(country.code, type.id),
@@ -116,6 +131,7 @@ export default async function LoanTypeRatesPage({ params }: Props) {
       <JsonLd
         data={[
           rateTableSchema(type.label, rates.length, `/bank-interest-rates/${type.rateSlug}`),
+          faqSchema(rateFaqs),
           breadcrumbSchema([
             { name: "Home", path: countryHref(country) },
             { name: "Bank Interest Rates", path: countryHref(country, "/bank-interest-rates") },
@@ -184,6 +200,17 @@ export default async function LoanTypeRatesPage({ params }: Props) {
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <AdLeaderboard />
       </div>
+
+      <section className="border-y border-[var(--border)] bg-[var(--bg-elevated)]">
+        <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
+          <FaqSection
+            faqs={rateFaqs}
+            eyebrow={type.label}
+            title={`${type.label} rates, explained`}
+            description="Why the rate you are offered differs from the one published, what moves a floating rate, and why the cheapest headline is not always the cheapest loan."
+          />
+        </div>
+      </section>
 
       <section className="mx-auto max-w-7xl px-4 pb-14 sm:px-6 lg:px-8">
         <h2 className="mb-4 font-display text-xl font-bold text-[var(--text)]">

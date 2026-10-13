@@ -1,6 +1,6 @@
 import type { MetadataRoute } from "next";
 
-import { getPublishedPosts } from "@/lib/queries";
+import { getPublishedPosts, publishedRateCounts } from "@/lib/queries";
 import { LIVE_COUNTRIES } from "@/lib/countries";
 import { schemesFor } from "@/lib/schemes";
 import { loanTypesFor, SITE_URL } from "@/lib/site";
@@ -8,8 +8,21 @@ import { loanTypesFor, SITE_URL } from "@/lib/site";
 // Re-generated hourly so a newly published post appears without a redeploy.
 export const revalidate = 3600;
 
+/** Keep in step with the threshold on the rate page itself. */
+const MIN_RATES_TO_INDEX = 3;
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date();
+
+  // How many published lenders each market has per loan type, so the rate
+  // pages that are too thin to index are also left out of the sitemap.
+  const ratesByType = new Map<string, number>();
+  try {
+    const counts = await publishedRateCounts();
+    for (const row of counts) ratesByType.set(`${row.country}:${row.loan_type}`, row.n);
+  } catch (err) {
+    console.error("[sitemap] could not count rates:", err);
+  }
 
   // Shared pages, one copy for the whole site.
   //
@@ -50,12 +63,18 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "weekly" as const,
       priority: 0.9,
     })),
-    ...loanTypesFor(c.code).map((t) => ({
-      url: `${SITE_URL}/${c.code}/bank-interest-rates/${t.rateSlug}`,
-      lastModified: now,
-      changeFrequency: "daily" as const,
-      priority: 0.85,
-    })),
+    // Only the rate pages carrying enough published lenders to be a real
+    // comparison. The rest are noindex, and listing a page in the sitemap that
+    // the page itself asks not to be indexed is a contradiction Search Console
+    // reports back as an error.
+    ...loanTypesFor(c.code)
+      .filter((t) => (ratesByType.get(`${c.code}:${t.id}`) ?? 0) >= MIN_RATES_TO_INDEX)
+      .map((t) => ({
+        url: `${SITE_URL}/${c.code}/bank-interest-rates/${t.rateSlug}`,
+        lastModified: now,
+        changeFrequency: "daily" as const,
+        priority: 0.85,
+      })),
     ...["compare-loans", "compare-investments", "investment-calculators", "bank-interest-rates"].map(
       (path) => ({
         url: `${SITE_URL}/${c.code}/${path}`,
