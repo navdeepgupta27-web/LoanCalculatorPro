@@ -31,7 +31,10 @@
     "db:author": "node --conditions=react-server --env-file-if-exists=.env.local --import tsx scripts/set-author.ts",
     "db:author:prod": "node --conditions=react-server --env-file=.env.prod.local --import tsx scripts/set-author.ts",
     "db:rates:sep26": "node --conditions=react-server --env-file-if-exists=.env.local --import tsx scripts/add-rates-2026-09.ts",
-    "db:rates:sep26:prod": "node --conditions=react-server --env-file=.env.prod.local --import tsx scripts/add-rates-2026-09.ts"
+    "db:rates:sep26:prod": "node --conditions=react-server --env-file=.env.prod.local --import tsx scripts/add-rates-2026-09.ts",
+    "guide:figures-2": "node --import tsx scripts/guide-figures-2.ts",
+    "db:guides-2": "node --conditions=react-server --env-file-if-exists=.env.local --import tsx scripts/add-guides-2.ts",
+    "db:guides-2:prod": "node --conditions=react-server --env-file=.env.prod.local --import tsx scripts/add-guides-2.ts"
   },
   "dependencies": {
     "@libsql/client": "^0.17.4",
