@@ -107,12 +107,21 @@ export async function getRates(country: string, loanType?: LoanTypeId): Promise<
 }
 
 /**
- * Every lender, whether or not it has a rate for this loan type.
+ * Lenders with a published rate for this loan type.
  *
- * The public tables start from `banks` and LEFT JOIN the rate, so the page is a
- * complete directory of the market from day one rather than an empty table
- * until someone fills it in. Lenders without a published rate render as
- * "Not published" and sort last.
+ * This used to start from `banks` and LEFT JOIN the rate, so every lender
+ * appeared whether or not a figure existed — the reasoning being that a full
+ * directory beats an empty table. In practice it produced a business-loan page
+ * listing fifty lenders and zero rates, and five more where forty-plus rows
+ * read "Not published". A table that is ninety per cent blank is not a
+ * directory, it is a page that looks built but is not finished, and an AdSense
+ * review called the site low value content twice while these were its most
+ * numerous pages.
+ *
+ * Nine real rows are worth more than fifty mostly-empty ones. Lenders without
+ * a published rate are still listed, by name, in the directory on the hub page
+ * — which is the honest place for "this lender exists, we have not transcribed
+ * its rate yet".
  */
 export async function getRatesForLoanType(
   country: string,
@@ -133,8 +142,10 @@ export async function getRatesForLoanType(
             b.accent     AS bank_accent,
             b.website    AS bank_website
        FROM banks b
-       LEFT JOIN rates r ON r.bank_id = b.id AND r.loan_type = ?
+       JOIN rates r ON r.bank_id = b.id AND r.loan_type = ?
       WHERE b.country = ?
+        AND r.verified = 1
+        AND r.min_rate IS NOT NULL
       ORDER BY (COALESCE(r.verified, 0) = 0 OR r.min_rate IS NULL),
                r.min_rate ASC, b.sort_order ASC, b.name ASC`,
     [loanType, loanType, country],
@@ -158,6 +169,24 @@ export async function getLenderDirectory(country: string): Promise<LenderDirecto
       WHERE b.country = ?
       ORDER BY b.sort_order ASC, b.name ASC`,
     [country],
+  );
+}
+
+/**
+ * Published lender count per country and loan type.
+ *
+ * Used by the sitemap to leave out rate pages too thin to be worth indexing,
+ * so the file never lists a URL whose own page carries a noindex.
+ */
+export async function publishedRateCounts(): Promise<
+  { country: string; loan_type: string; n: number }[]
+> {
+  return all(
+    `SELECT b.country AS country, r.loan_type AS loan_type, COUNT(*) AS n
+       FROM rates r
+       JOIN banks b ON b.id = r.bank_id
+      WHERE r.verified = 1 AND r.min_rate IS NOT NULL
+      GROUP BY b.country, r.loan_type`,
   );
 }
 
